@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Icon from '../components/Icon'
 import ThemeToggle from '../components/ThemeToggle'
+import { portfolio } from '../data/portfolio'
 
 const links = [
   { label: 'About', href: '#about' },
@@ -16,12 +17,21 @@ export default function Header({ theme, onToggleTheme }) {
     setMenuOpen(false)
   }
 
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') closeMenu()
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
   return (
     <header className="site-header">
       <div className="container header-inner">
         <a className="brand" href="#top" onClick={closeMenu} aria-label="Back to top">
-          <span className="brand-mark">Y</span>
-          <span>Your Name</span>
+          <span className="brand-mark">D</span>
+          <span>{portfolio.name}</span>
         </a>
 
         <nav className={`desktop-nav ${menuOpen ? 'is-open' : ''}`} aria-label="Main navigation">

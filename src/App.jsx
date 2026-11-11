@@ -5,12 +5,13 @@ import Skills from './sections/Skills'
 import Projects from './sections/Projects'
 import Contact from './sections/Contact'
 import { useTheme } from './hooks/useTheme'
+import { portfolio } from './data/portfolio'
 
 function Footer() {
   return (
     <footer className="site-footer">
       <div className="container footer-inner">
-        <span>© {new Date().getFullYear()} Your Name</span>
+        <span>© {new Date().getFullYear()} {portfolio.name}</span>
         <span>Designed &amp; built with intention.</span>
       </div>
     </footer>

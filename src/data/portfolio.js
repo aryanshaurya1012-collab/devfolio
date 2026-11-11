@@ -1,5 +1,5 @@
 export const portfolio = {
-  name: 'Your Name',
+  name: 'Devfolio',
   role: 'Frontend developer & problem solver',
   intro:
     'I build thoughtful digital experiences where clear design, useful technology, and careful implementation meet.',
