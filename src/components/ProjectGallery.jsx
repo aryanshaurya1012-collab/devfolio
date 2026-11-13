@@ -1,12 +1,26 @@
-import { ScrollControls, Scroll, useScroll } from '@react-three/drei'
+import { useRef } from 'react'
+import { useFrame, useThree } from '@react-three/fiber'
+import { ScrollControls, useScroll } from '@react-three/drei'
 import ProjectCard3D from './ProjectCard3D'
 
 function GalleryContent({ projects }) {
   const scroll = useScroll()
-  const spacing = 7.0
+  const groupRef = useRef(null)
+  const { width } = useThree((state) => state.viewport)
+
+  // Step 5 & Step 15: Exact base spacing 5.5, responsively expanded on ultra-wide viewports
+  const spacing = Math.max(5.5, width * 0.38)
+  const total = Math.max(1, projects.length - 1)
+
+  useFrame(() => {
+    if (groupRef.current && scroll) {
+      // Glides smoothly along the X axis driven by the dampened scroll offset
+      groupRef.current.position.x = -scroll.offset * total * spacing
+    }
+  })
 
   return (
-    <>
+    <group ref={groupRef}>
       {projects.map((project, index) => (
         <ProjectCard3D
           key={project.id || index}
@@ -17,46 +31,50 @@ function GalleryContent({ projects }) {
           scroll={scroll}
         />
       ))}
-    </>
+    </group>
   )
 }
 
-export default function ProjectGallery({ projects = [] }) {
+export default function ProjectGallery({ projects = [], isEditing = false }) {
   const safeProjects =
     Array.isArray(projects) && projects.length > 0
       ? projects
       : [
           {
-            id: 'default-1',
-            title: 'AETHER PROTOCOL',
-            tech: 'Solidity, Three.js, React',
-            category: 'DeFi',
+            id: 'proj-1',
+            title: 'Aether',
             description:
-              'Decentralized liquidity visualizer with real-time on-chain telemetry.',
+              'A minimal study in digital presence, editorial typography, and physical WebGL materiality.',
+            year: 'YEAR // 2026',
+            tech: 'React · WebGL',
           },
           {
-            id: 'default-2',
-            title: 'NEURAL NEXUS',
-            tech: 'TypeScript, WebGL, Node.js',
-            category: 'AI Node',
+            id: 'proj-2',
+            title: 'Monolith',
             description:
-              'Generative AI node orchestrator and monitoring console.',
+              'High-fidelity generative architecture visualizer with real-time reactive shaders.',
+            year: 'YEAR // 2025',
+            tech: 'GLSL · Three.js',
+          },
+          {
+            id: 'proj-3',
+            title: 'Chronos',
+            description:
+              'A sonic and spatial interface inspired by mid-century audio engineering.',
+            year: 'YEAR // 2024',
+            tech: 'WebAudio · Canvas',
           },
         ]
 
-  // Heavy, deliberate scroll physics (pages = projects.length * 0.5)
-  const pages = Math.max(1.5, safeProjects.length * 0.5)
-
   return (
     <ScrollControls
-      pages={pages}
-      damping={0.15}
-      distance={1.5}
+      pages={Math.max(1, safeProjects.length)}
+      damping={0.2}
+      distance={2}
       horizontal
+      enabled={!isEditing}
     >
-      <Scroll>
-        <GalleryContent projects={safeProjects} />
-      </Scroll>
+      <GalleryContent projects={safeProjects} />
     </ScrollControls>
   )
 }

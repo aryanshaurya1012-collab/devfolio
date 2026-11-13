@@ -1,11 +1,16 @@
-import { useRef, useState, useMemo } from 'react'
+import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Html, Float } from '@react-three/drei'
+import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { easing } from 'maath'
 
-// Global geometry compiled once for maximum WebGL performance
-const CARD_GEOMETRY = new THREE.PlaneGeometry(5, 7.5)
+// Step 6: Physical VHS sleeve / premium book geometry & material
+const BOX_GEOMETRY = new THREE.BoxGeometry(4, 5.5, 0.2)
+const BOX_MATERIAL = new THREE.MeshStandardMaterial({
+  color: '#111111',
+  roughness: 0.4,
+  metalness: 0.6,
+})
 
 export default function ProjectCard3D({
   project,
@@ -14,150 +19,102 @@ export default function ProjectCard3D({
   position = [0, 0, 0],
   scroll,
 }) {
-  const cardGroupRef = useRef(null)
-  const meshRef = useRef(null)
-  const [hovered, setHovered] = useState(false)
+  const groupRef = useRef(null)
+  const htmlRef = useRef(null)
 
-  // Safe fallback metadata
   const title = (project?.title || `PROJECT 0${index + 1}`).trim()
-  const category = (project?.category || 'MODULE').trim()
-  const description = (project?.description || '').trim()
-
-  // Parse tech stack into individual badge strings
-  const techList = useMemo(() => {
-    if (Array.isArray(project?.techStack) && project.techStack.length > 0) {
-      return project.techStack
-    }
-    if (project?.tech) {
-      return String(project.tech)
-        .split(/[,/·+]/)
-        .map((t) => t.trim())
-        .filter(Boolean)
-    }
-    if (Array.isArray(project?.technologies) && project.technologies.length > 0) {
-      return project.technologies
-    }
-    return ['REACT', 'THREE.JS', 'WEB3']
-  }, [project])
+  const description = (
+    project?.description ||
+    'A minimal exploration in digital presence, typography, and materiality.'
+  ).trim()
+  const year = (project?.year || `YEAR // 202${6 - (index % 4)}`).trim()
+  const tech = (
+    project?.tech ||
+    project?.techStack?.[0] ||
+    project?.category ||
+    ''
+  ).trim()
 
   useFrame((_state, delta) => {
-    if (!cardGroupRef.current) return
+    if (!groupRef.current) return
 
-    // Calculate distance from center via scroll offset
+    // Calculate distance from center based on scroll offset
     const total = Math.max(1, totalProjects - 1)
     const currentActiveIndex = scroll ? scroll.offset * total : 0
-    const indexDistance = Math.abs(index - currentActiveIndex)
-    const normalizedDist = Math.min(1, indexDistance)
+    const distFromActive = Math.abs(index - currentActiveIndex)
+    const normalizedDist = Math.min(1, distFromActive)
 
-    // Center = scale(1.1). Edges = scale(0.8)
-    const baseScale = 1.1 - normalizedDist * 0.3
-    const targetScale = hovered ? baseScale * 1.05 : baseScale
-
-    // 3D cover-flow rotation & depth recession
+    // Step 8: Active (Center) Card: Scale up to 1.1, opacity 1
+    // Inactive (Side) Cards: Scale down to 0.85, rotate slightly away, opacity 0.3
+    const targetScale = 1.1 - normalizedDist * 0.25 // 1.1 at center, 0.85 at sides
     const targetRotY = -Math.max(
-      -0.35,
-      Math.min(0.35, (index - currentActiveIndex) * 0.3),
+      -0.25,
+      Math.min(0.25, (index - currentActiveIndex) * 0.2),
     )
-    const targetPosZ = -Math.min(3, indexDistance * 0.8)
+    const targetPosZ = -normalizedDist * 0.4
+    const targetOpacity = 1.0 - normalizedDist * 0.7 // 1.0 at center, 0.3 at sides
 
-    // Fluid maath dampening
+    // Buttery smooth maath dampening
     easing.damp3(
-      cardGroupRef.current.scale,
+      groupRef.current.scale,
       [targetScale, targetScale, targetScale],
       0.2,
       delta,
     )
-    easing.dampE(cardGroupRef.current.rotation, [0, targetRotY, 0], 0.25, delta)
-    easing.damp(cardGroupRef.current.position, 'z', targetPosZ, 0.22, delta)
+    easing.dampE(groupRef.current.rotation, [0, targetRotY, 0], 0.25, delta)
+    easing.damp(groupRef.current.position, 'z', targetPosZ, 0.22, delta)
+
+    // Smooth HTML opacity transition
+    if (htmlRef.current) {
+      htmlRef.current.style.opacity = targetOpacity.toFixed(3)
+    }
   })
 
   return (
-    <group ref={cardGroupRef} position={position}>
-      <Float speed={1.5} rotationIntensity={0.15} floatIntensity={0.35}>
-        {/* Massive 5x7.5 Physical Glass Panel */}
-        <mesh
-          ref={meshRef}
-          geometry={CARD_GEOMETRY}
-          onPointerOver={(e) => {
-            e.stopPropagation()
-            setHovered(true)
-            document.body.style.cursor = 'pointer'
-          }}
-          onPointerOut={() => {
-            setHovered(false)
-            document.body.style.cursor = 'auto'
-          }}
-        >
-          <meshPhysicalMaterial
-            transmission={0.9}
-            roughness={0.1}
-            metalness={0.8}
-            clearcoat={1}
-            color="#050505"
-            transparent
-          />
-        </mesh>
+    <group ref={groupRef} position={position}>
+      {/* Physical VHS sleeve / book mesh */}
+      <mesh geometry={BOX_GEOMETRY} material={BOX_MATERIAL} />
 
-        {/* Razor-Sharp HTML Projected Overlay */}
-        <Html
-          transform
-          distanceFactor={3.5}
-          position={[0, 0, 0.05]}
+      {/* Step 7: High-end editorial poster HTML overlay */}
+      <Html
+        transform
+        distanceFactor={2.5}
+        position={[0, 0, 0.11]}
+        center
+        style={{ pointerEvents: 'none' }}
+      >
+        <div
+          ref={htmlRef}
+          className="w-[320px] h-[440px] bg-[#0a0a0a] border border-[#222] p-8 flex flex-col justify-between shadow-[0_20px_50px_rgba(0,0,0,0.8)] select-none transition-opacity duration-150"
           style={{ pointerEvents: 'none' }}
         >
-          <div
-            className={`w-[40vw] min-w-[400px] h-[60vh] min-h-[600px] flex flex-col justify-between p-10 bg-gradient-to-br from-black/80 to-black/40 backdrop-blur-2xl border-2 ${
-              hovered ? 'border-[#14F195]/60 shadow-[0_0_60px_rgba(20,241,149,0.3)]' : 'border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)]'
-            } rounded-3xl overflow-hidden select-none transition-colors duration-300`}
-            style={{
-              pointerEvents: 'none',
-              backgroundImage: `
-                radial-gradient(ellipse at top right, rgba(153, 69, 255, 0.2), transparent 60%),
-                radial-gradient(ellipse at bottom left, rgba(20, 241, 149, 0.15), transparent 50%),
-                repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.02) 0px, rgba(255, 255, 255, 0.02) 1px, transparent 1px, transparent 3px)
-              `,
-            }}
-          >
-            {/* Top Eyebrow & Status */}
-            <div>
-              <div className="flex items-center justify-between mb-8 border-b border-white/10 pb-4">
-                <span className="font-mono text-xs md:text-sm tracking-[0.25em] text-[#14F195] font-bold uppercase">
-                  {`// 0${index + 1}  ${category.toUpperCase()}`}
-                </span>
-                <div className="flex items-center gap-2 font-mono text-xs text-zinc-400 tracking-widest">
-                  <span className="h-2.5 w-2.5 rounded-full bg-[#14F195] animate-pulse shadow-[0_0_8px_#14F195]" />
-                  <span>DEV_OS</span>
-                </div>
-              </div>
-
-              {/* Massive Aggressive Title */}
-              <h3 className="font-black text-6xl md:text-8xl tracking-tighter uppercase text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500 leading-none">
-                {title}
-              </h3>
-
-              {/* Description */}
-              <p className="font-mono text-lg md:text-xl text-gray-400 mt-6 leading-relaxed line-clamp-4">
-                {description ||
-                  'High-performance decentralized interface and real-time WebGL graphics module.'}
-              </p>
-            </div>
-
-            {/* Bottom: Neon Tech Stack Pills */}
-            <div className="border-t border-white/10 pt-6">
-              <div className="flex flex-wrap gap-2.5">
-                {techList.map((t) => (
-                  <span
-                    key={t}
-                    className="px-4 py-2 bg-[#14F195]/10 text-[#14F195] border border-[#14F195]/30 rounded-full font-mono text-sm font-bold shadow-[0_0_15px_rgba(20,241,149,0.15)]"
-                  >
-                    {t.toUpperCase()}
-                  </span>
-                ))}
-              </div>
-            </div>
+          {/* Top: Small centered eyebrow text */}
+          <div className="text-center">
+            <span className="font-sans text-xs text-[#888] tracking-widest text-center uppercase block">
+              {year}
+            </span>
           </div>
-        </Html>
-      </Float>
+
+          {/* Middle: Massive elegant title */}
+          <div className="my-auto py-4">
+            <h2 className="font-serif text-5xl text-[#eaeaea] leading-none tracking-tight text-center uppercase break-words">
+              {title}
+            </h2>
+          </div>
+
+          {/* Bottom: Clean description and simple tech text (no glowing pills) */}
+          <div className="text-center pt-3 border-t border-[#1a1a1a]">
+            <p className="font-sans text-xs text-[#888] text-center leading-relaxed line-clamp-3">
+              {description}
+            </p>
+            {tech && (
+              <span className="font-sans text-[10px] text-[#666] uppercase tracking-widest text-center mt-3 block">
+                {tech}
+              </span>
+            )}
+          </div>
+        </div>
+      </Html>
     </group>
   )
 }

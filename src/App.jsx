@@ -1,144 +1,125 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Scene from './components/Scene'
-import EditorCommandCenter from './components/EditorCommandCenter'
+import EditorModal from './components/EditorModal'
 
 const INITIAL_PORTFOLIO = {
   name: 'ALEXANDER VANE',
-  role: 'WEB3 & GRAPHICS ENGINEER',
-  bio: 'Designing real-time decentralized interfaces and high-performance WebGL systems.',
+  role: 'Creative Developer & Architect',
+  bio: 'A minimal study in digital presence, editorial typography, and physical WebGL materiality.',
   socials: {
     github: 'github.com/avane',
     twitter: 'x.com/avane_dev',
     linkedin: 'linkedin.com/in/avane',
   },
-  skills: ['React', 'Three.js', 'Solidity', 'TypeScript', 'WebGL', 'GLSL'],
   projects: [
     {
       id: 'proj-1',
-      title: 'AETHER PROTOCOL',
-      tech: 'Solidity, Three.js, React',
-      category: 'DeFi',
+      title: 'Aether',
       description:
-        'Decentralized liquidity visualizer with real-time on-chain telemetry and reactive shaders.',
+        'A minimal study in digital presence, editorial typography, and physical WebGL materiality.',
+      year: 'YEAR // 2026',
+      tech: 'React · WebGL',
     },
     {
       id: 'proj-2',
-      title: 'NEURAL NEXUS',
-      tech: 'TypeScript, WebGL, Node.js',
-      category: 'AI Node',
+      title: 'Monolith',
       description:
-        'Generative AI node orchestrator and monitoring console with sub-millisecond dispatch.',
+        'High-fidelity generative architecture visualizer with real-time reactive shaders.',
+      year: 'YEAR // 2025',
+      tech: 'GLSL · Three.js',
     },
     {
       id: 'proj-3',
-      title: 'CHRONO MATRIX',
-      tech: 'GLSL, WebAudio, Vite',
-      category: 'Creative',
+      title: 'Chronos',
       description:
-        'Spatial audio synth & algorithmic visualizer inspired by retro-futuristic CRT systems.',
+        'A sonic and spatial interface inspired by mid-century audio engineering.',
+      year: 'YEAR // 2024',
+      tech: 'WebAudio · Canvas',
     },
     {
       id: 'proj-4',
-      title: 'SYNAPSE LABS',
-      tech: 'Rust, ZK-Snarks, React',
-      category: 'Cryptography',
+      title: 'Kinesis',
       description:
-        'Zero-knowledge identity verification suite with minimal on-chain biometric proofs.',
+        'Experimental kinetic typography engine exploring fluid dynamics in browser canvas.',
+      year: 'YEAR // 2023',
+      tech: 'GLSL · WebGPU',
     },
   ],
 }
 
 export default function App() {
   const [portfolioData, setPortfolioData] = useState(INITIAL_PORTFOLIO)
-  const [time, setTime] = useState('')
-
-  useEffect(() => {
-    function updateClock() {
-      const now = new Date()
-      const hours = String(now.getHours()).padStart(2, '0')
-      const minutes = String(now.getMinutes()).padStart(2, '0')
-      const seconds = String(now.getSeconds()).padStart(2, '0')
-      const millis = String(Math.floor(now.getMilliseconds() / 10)).padStart(2, '0')
-      setTime(`${hours}:${minutes}:${seconds}:${millis}`)
-    }
-
-    updateClock()
-    const timer = setInterval(updateClock, 50)
-    return () => clearInterval(timer)
-  }, [])
+  const [isEditing, setIsEditing] = useState(false)
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-black select-none">
-      {/* 100% Full-Screen Cinematic WebGL Canvas */}
-      <div className="absolute inset-0 z-0">
-        <Scene portfolioData={portfolioData} />
+    // Step 3: Strict root wrapper preventing scroll breaking
+    <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-[#050505] text-[#e0e0e0]">
+      {/* 3D WebGL Canvas Layer */}
+      <div
+        className={`absolute inset-0 z-0 ${
+          isEditing ? 'pointer-events-none' : 'pointer-events-auto'
+        }`}
+      >
+        <Scene portfolioData={portfolioData} isEditing={isEditing} />
       </div>
 
-      {/* Floating HUD Overlay with CRT Monitor Edge Simulation */}
-      <div
-        className="absolute inset-0 z-10 pointer-events-none flex flex-col justify-between p-6 sm:p-8"
-        style={{ boxShadow: 'inset 0 0 100px rgba(0,0,0,0.9)' }}
-      >
-        {/* Top HUD: Display Name and Retro CRT REC Telemetry */}
-        <header className="flex items-center justify-between w-full">
-          {/* Top-left: REC + Live Timestamp + Identity */}
-          <div className="flex items-center gap-3 sm:gap-4 font-mono text-xs sm:text-sm tracking-widest">
-            <div className="flex items-center gap-2">
-              <span className="inline-block w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_#ef4444]" />
-              <span className="font-bold text-red-500">REC</span>
-            </div>
-            <span className="text-zinc-600">//</span>
-            <span className="text-zinc-300 font-medium">
-              {time ? time.slice(0, 8) : '01:19:14'}
-            </span>
-            <span className="hidden md:inline text-zinc-600">|</span>
-            <span className="hidden md:inline text-cyan-400 font-bold uppercase tracking-wider">
-              {portfolioData.name || 'ANONYMOUS'}
-            </span>
-          </div>
-
-          {/* Top-right: HUD Status Tags */}
-          <div className="flex items-center gap-4 font-mono text-[11px] sm:text-xs tracking-wider uppercase text-zinc-400">
-            <span className="hidden sm:inline text-purple-400">
-              DEV-OS // 3D ENGINE
-            </span>
-            <span className="flex items-center gap-1.5 text-emerald-400 font-bold">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              ONLINE
-            </span>
-          </div>
-        </header>
-
-        {/* Ambient Center Scroll Cue */}
-        <div className="w-full flex justify-center opacity-60">
-          <div className="font-mono text-[10px] sm:text-[11px] tracking-[0.25em] text-zinc-500 uppercase flex items-center gap-3">
-            <span>&larr;</span>
-            <span className="animate-pulse">
-              SCROLL HORIZONTALLY TO NAVIGATE MATRIX
-            </span>
-            <span>&rarr;</span>
-          </div>
+      {/* Step 11: Minimalist Header HUD */}
+      <header className="absolute top-0 left-0 w-full p-8 flex justify-between items-start z-20 pointer-events-none mix-blend-difference select-none">
+        {/* Left: devfolio © 2026 */}
+        <div className="font-sans text-xs tracking-widest text-[#aaa] uppercase">
+          devfolio &copy; 2026
         </div>
 
-        {/* Bottom HUD: Status Telemetry */}
-        <footer className="flex items-center justify-between w-full font-mono text-[10px] sm:text-xs text-zinc-500 tracking-wider">
-          <div className="flex items-center gap-3">
-            <span className="text-cyan-400 font-semibold">PREVIEW_MATRIX</span>
-            <span>::</span>
-            <span>{portfolioData.projects?.length || 0} MODULES LOADED</span>
-            <span className="hidden sm:inline text-zinc-600">|</span>
-            <span className="hidden sm:inline text-purple-400">
-              PHYSICS DAMPENED 60FPS
-            </span>
-          </div>
-          <div className="hidden sm:block text-zinc-600">
-            [ FOV 35 // CAMERA CALIBRATED ]
-          </div>
-        </footer>
-      </div>
+        {/* Center: Elegant static logo or name */}
+        <div className="font-serif text-lg md:text-xl tracking-widest text-[#eaeaea] uppercase font-normal text-center">
+          {portfolioData.name || 'ALEXANDER VANE'}
+        </div>
 
-      {/* Bottom-Docked SaaS Command Center */}
-      <EditorCommandCenter
+        {/* Right: Simple navigation text with pointer-events-auto */}
+        <nav
+          className="pointer-events-auto flex items-center gap-6 font-sans text-xs tracking-widest text-[#aaa] uppercase"
+          aria-label="Navigation"
+        >
+          <a
+            href="#work"
+            className="hover:text-white transition-colors"
+            onClick={(e) => e.preventDefault()}
+          >
+            Work
+          </a>
+          <a
+            href="#profile"
+            className="hover:text-white transition-colors"
+            onClick={(e) => {
+              e.preventDefault()
+              setIsEditing(true)
+            }}
+          >
+            Profile
+          </a>
+          <a
+            href="#contact"
+            className="hover:text-white transition-colors"
+            onClick={(e) => e.preventDefault()}
+          >
+            Contact
+          </a>
+        </nav>
+      </header>
+
+      {/* Step 12: Elegant Editor Toggle Button */}
+      <button
+        type="button"
+        onClick={() => setIsEditing(true)}
+        className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 pointer-events-auto px-6 py-2 rounded-full border border-[#333] bg-black/50 backdrop-blur-md text-[#aaa] text-xs tracking-widest uppercase hover:bg-white hover:text-black transition-all duration-500 cursor-pointer"
+      >
+        Edit Portfolio
+      </button>
+
+      {/* Step 13: Sleek Notion / macOS SaaS Editor Modal */}
+      <EditorModal
+        isOpen={isEditing}
+        onClose={() => setIsEditing(false)}
         portfolioData={portfolioData}
         setPortfolioData={setPortfolioData}
       />
