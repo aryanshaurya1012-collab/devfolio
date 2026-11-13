@@ -1,117 +1,254 @@
-import { useRef } from 'react'
+import { useRef, useState, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { easing } from 'maath'
+import { ArrowUpRight } from 'lucide-react'
 
-// Step 6: Physical VHS sleeve / premium book geometry & material
-const BOX_GEOMETRY = new THREE.BoxGeometry(4, 5.5, 0.2)
-const BOX_MATERIAL = new THREE.MeshStandardMaterial({
-  color: '#111111',
-  roughness: 0.4,
-  metalness: 0.6,
-})
+// Single geometries compiled once
+const BOX_GEOMETRY = new THREE.BoxGeometry(4.4, 6.0, 0.22)
+const BACKPLATE_GEOMETRY = new THREE.PlaneGeometry(4.6, 6.2)
 
 export default function ProjectCard3D({
   project,
   index,
   totalProjects = 1,
-  position = [0, 0, 0],
-  scroll,
+  currentActiveIndex = 0,
+  spacing = 5.6,
+  onScrollToIndex,
+  onOpenCaseStudy,
 }) {
   const groupRef = useRef(null)
-  const htmlRef = useRef(null)
+  const backplateMatRef = useRef(null)
+  const [hovered, setHovered] = useState(false)
+  const [localPointer, setLocalPointer] = useState({ x: 0, y: 0 })
 
-  const title = (project?.title || `PROJECT 0${index + 1}`).trim()
-  const description = (
-    project?.description ||
-    'A minimal exploration in digital presence, typography, and materiality.'
-  ).trim()
-  const year = (project?.year || `YEAR // 202${6 - (index % 4)}`).trim()
-  const tech = (
-    project?.tech ||
-    project?.techStack?.[0] ||
-    project?.category ||
-    ''
-  ).trim()
+  const dist = index - currentActiveIndex
+  const absDist = Math.abs(dist)
+  const isActive = absDist < 0.45
+
+  // Parse tech tags
+  const techList = useMemo(() => {
+    if (Array.isArray(project?.tech) && project.tech.length > 0) {
+      return project.tech
+    }
+    return ['React', 'TypeScript', 'Web3']
+  }, [project])
 
   useFrame((_state, delta) => {
     if (!groupRef.current) return
 
-    // Calculate distance from center based on scroll offset
-    const total = Math.max(1, totalProjects - 1)
-    const currentActiveIndex = scroll ? scroll.offset * total : 0
-    const distFromActive = Math.abs(index - currentActiveIndex)
-    const normalizedDist = Math.min(1, distFromActive)
+    // Step 11: Cylindrical curved 3D arch trajectory
+    const targetX = dist * spacing
+    const baseZ = -Math.min(8, absDist * 2.2)
+    const hoverZ = hovered ? 0.6 : 0
+    const targetZ = baseZ + hoverZ
 
-    // Step 8: Active (Center) Card: Scale up to 1.1, opacity 1
-    // Inactive (Side) Cards: Scale down to 0.85, rotate slightly away, opacity 0.3
-    const targetScale = 1.1 - normalizedDist * 0.25 // 1.1 at center, 0.85 at sides
-    const targetRotY = -Math.max(
-      -0.25,
-      Math.min(0.25, (index - currentActiveIndex) * 0.2),
+    // Rotation: Arch curvature + Mouse hover 3D tilt
+    const baseRotY = -Math.max(-0.6, Math.min(0.6, dist * 0.28))
+    const tiltX = hovered ? localPointer.y * 0.22 : 0
+    const tiltY = hovered ? localPointer.x * -0.22 : 0
+
+    // Scale: Active center monolith commands 60%+ height
+    const baseScale = Math.max(0.78, 1.05 - Math.min(1.2, absDist) * 0.24)
+    const targetScale = hovered ? baseScale * 1.03 : baseScale
+
+    // Eased smoothing
+    easing.damp3(
+      groupRef.current.position,
+      [targetX, 0, targetZ],
+      0.22,
+      delta,
     )
-    const targetPosZ = -normalizedDist * 0.4
-    const targetOpacity = 1.0 - normalizedDist * 0.7 // 1.0 at center, 0.3 at sides
-
-    // Buttery smooth maath dampening
+    easing.dampE(
+      groupRef.current.rotation,
+      [tiltX, baseRotY + tiltY, 0],
+      0.22,
+      delta,
+    )
     easing.damp3(
       groupRef.current.scale,
       [targetScale, targetScale, targetScale],
       0.2,
       delta,
     )
-    easing.dampE(groupRef.current.rotation, [0, targetRotY, 0], 0.25, delta)
-    easing.damp(groupRef.current.position, 'z', targetPosZ, 0.22, delta)
 
-    // Smooth HTML opacity transition
-    if (htmlRef.current) {
-      htmlRef.current.style.opacity = targetOpacity.toFixed(3)
+    // Step 15: Glowing backplate opacity
+    if (backplateMatRef.current) {
+      const glowTarget = isActive ? 0.45 : hovered ? 0.25 : 0.0
+      easing.damp(backplateMatRef.current, 'opacity', glowTarget, 0.2, delta)
     }
   })
 
   return (
-    <group ref={groupRef} position={position}>
-      {/* Physical VHS sleeve / book mesh */}
-      <mesh geometry={BOX_GEOMETRY} material={BOX_MATERIAL} />
+    <group ref={groupRef}>
+      {/* Step 15: Glowing Backplate Mesh */}
+      <mesh position={[0, 0, -0.13]} geometry={BACKPLATE_GEOMETRY}>
+        <meshBasicMaterial
+          ref={backplateMatRef}
+          color={project.accent || '#f59e0b'}
+          transparent
+          opacity={0}
+        />
+      </mesh>
 
-      {/* Step 7: High-end editorial poster HTML overlay */}
+      {/* Step 14: True Monolith Physical Sleeve */}
+      <mesh
+        geometry={BOX_GEOMETRY}
+        onPointerOver={(e) => {
+          e.stopPropagation()
+          setHovered(true)
+          document.body.style.cursor = 'pointer'
+        }}
+        onPointerMove={(e) => {
+          e.stopPropagation()
+          if (e.point && groupRef.current) {
+            setLocalPointer({
+              x: Math.max(-1, Math.min(1, (e.uv ? e.uv.x - 0.5 : 0) * 2)),
+              y: Math.max(-1, Math.min(1, (e.uv ? e.uv.y - 0.5 : 0) * 2)),
+            })
+          }
+        }}
+        onPointerOut={() => {
+          setHovered(false)
+          setLocalPointer({ x: 0, y: 0 })
+          document.body.style.cursor = 'auto'
+        }}
+        onClick={(e) => {
+          e.stopPropagation()
+          if (isActive) {
+            onOpenCaseStudy(project)
+          } else {
+            onScrollToIndex(index)
+          }
+        }}
+      >
+        <meshStandardMaterial
+          color="#2a2433"
+          metalness={0.8}
+          roughness={0.2}
+        />
+      </mesh>
+
+      {/* Step 16: Massive High-Contrast Editorial HTML Overlay */}
       <Html
         transform
-        distanceFactor={2.5}
-        position={[0, 0, 0.11]}
+        distanceFactor={5.2}
+        position={[0, 0, 0.12]}
         center
-        style={{ pointerEvents: 'none' }}
+        style={{ pointerEvents: 'auto' }}
       >
         <div
-          ref={htmlRef}
-          className="w-[320px] h-[440px] bg-[#0a0a0a] border border-[#222] p-8 flex flex-col justify-between shadow-[0_20px_50px_rgba(0,0,0,0.8)] select-none transition-opacity duration-150"
-          style={{ pointerEvents: 'none' }}
+          onClick={() => {
+            if (isActive) {
+              onOpenCaseStudy(project)
+            } else {
+              onScrollToIndex(index)
+            }
+          }}
+          className={`w-[380px] h-[520px] bg-gradient-to-br ${
+            project.gradient || 'from-amber-500/30 via-orange-950/40 to-zinc-950'
+          } border border-white/20 rounded-2xl p-7 flex flex-col justify-between shadow-[0_25px_60px_rgba(0,0,0,0.85)] backdrop-blur-xl relative overflow-hidden select-none cursor-pointer transition-shadow duration-300 ${
+            hovered ? 'shadow-[0_0_40px_rgba(255,255,255,0.18)]' : ''
+          }`}
+          style={{
+            backgroundColor: '#0a080e',
+          }}
         >
-          {/* Top: Small centered eyebrow text */}
-          <div className="text-center">
-            <span className="font-sans text-xs text-[#888] tracking-widest text-center uppercase block">
-              {year}
-            </span>
-          </div>
+          {/* Accent Glow Top Highlight */}
+          <div
+            className="absolute -top-24 -right-24 w-48 h-48 rounded-full blur-3xl opacity-35 pointer-events-none"
+            style={{ backgroundColor: project.accent || '#f59e0b' }}
+          />
 
-          {/* Middle: Massive elegant title */}
-          <div className="my-auto py-4">
-            <h2 className="font-serif text-5xl text-[#eaeaea] leading-none tracking-tight text-center uppercase break-words">
-              {title}
-            </h2>
-          </div>
-
-          {/* Bottom: Clean description and simple tech text (no glowing pills) */}
-          <div className="text-center pt-3 border-t border-[#1a1a1a]">
-            <p className="font-sans text-xs text-[#888] text-center leading-relaxed line-clamp-3">
-              {description}
-            </p>
-            {tech && (
-              <span className="font-sans text-[10px] text-[#666] uppercase tracking-widest text-center mt-3 block">
-                {tech}
+          {/* Step 18: Editorial Poster Header */}
+          <div className="relative z-10">
+            <div className="flex items-center justify-between border-b border-white/15 pb-4 mb-5">
+              <span className="font-mono text-xs tracking-[0.2em] font-semibold text-white/90">
+                0{index + 1} // 0{totalProjects}
               </span>
-            )}
+
+              <div className="flex items-center gap-2">
+                <span
+                  className="px-2.5 py-0.5 rounded-full text-[10px] font-sans font-semibold tracking-wider uppercase border"
+                  style={{
+                    backgroundColor: `${project.accent}15`,
+                    borderColor: `${project.accent}40`,
+                    color: project.accent || '#f59e0b',
+                  }}
+                >
+                  {project.category || 'CASE STUDY'}
+                </span>
+
+                <span className="font-mono text-[11px] text-zinc-400">
+                  {project.year || '2026'}
+                </span>
+              </div>
+            </div>
+
+            {/* Step 19: Oversized Display Typography */}
+            <h2 className="font-serif text-5xl tracking-tight text-white drop-shadow-md leading-none mb-4">
+              {project.title}
+            </h2>
+
+            {/* Description */}
+            <p className="font-sans text-xs text-zinc-300 leading-relaxed line-clamp-3">
+              {project.description}
+            </p>
+          </div>
+
+          {/* Visual Cover Banner Accent */}
+          <div className="relative z-10 my-auto py-2">
+            <div
+              className="h-14 rounded-xl border border-white/10 flex items-center justify-between px-4"
+              style={{
+                background: `linear-gradient(90deg, ${project.accent}18 0%, rgba(255,255,255,0.02) 100%)`,
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-2 h-2 rounded-full animate-ping"
+                  style={{ backgroundColor: project.accent || '#f59e0b' }}
+                />
+                <span className="font-sans text-[11px] uppercase tracking-widest text-zinc-300 font-medium">
+                  Interactive Node
+                </span>
+              </div>
+              <span className="font-mono text-[10px] text-zinc-500">
+                DEV-OS ENGINE
+              </span>
+            </div>
+          </div>
+
+          {/* Step 20: Interactive Action Footer */}
+          <div className="relative z-10 border-t border-white/15 pt-4">
+            {/* Tech Stack Pills */}
+            <div className="flex flex-wrap gap-1.5 mb-4">
+              {techList.slice(0, 4).map((tech) => (
+                <span
+                  key={tech}
+                  className="px-2.5 py-1 rounded-md text-[10px] font-mono font-medium text-zinc-300 bg-white/5 border border-white/10"
+                >
+                  {tech}
+                </span>
+              ))}
+            </div>
+
+            {/* Live Case Study CTA Button */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                onOpenCaseStudy(project)
+              }}
+              className="w-full py-2.5 px-4 rounded-xl font-sans text-xs font-semibold tracking-wider uppercase text-white bg-white/10 hover:bg-white/20 border border-white/20 transition-all flex items-center justify-between group/btn cursor-pointer"
+            >
+              <span>Explore Case Study</span>
+              <ArrowUpRight
+                size={14}
+                className="group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform text-white/90"
+              />
+            </button>
           </div>
         </div>
       </Html>
