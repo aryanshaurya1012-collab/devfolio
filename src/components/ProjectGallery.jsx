@@ -1,14 +1,30 @@
 import { ScrollControls, Scroll } from '@react-three/drei'
-import { projects } from '../data/portfolio'
 import ProjectCard3D from './ProjectCard3D'
 
-export default function ProjectGallery() {
+export default function ProjectGallery({ projects = [] }) {
+  const safeProjects =
+    Array.isArray(projects) && projects.length > 0
+      ? projects
+      : [
+          {
+            title: 'NEW PROJECT',
+            tech: 'REACT / WEB3',
+            category: 'DRAFT',
+            description: 'Add your first project using the editor sidebar.',
+          },
+        ]
+
   return (
-    <ScrollControls pages={projects.length} damping={0.1} horizontal>
+    <ScrollControls
+      pages={Math.max(1, safeProjects.length)}
+      damping={0.15}
+      distance={1.5}
+      horizontal
+    >
       <Scroll>
-        {projects.map((project, index) => (
+        {safeProjects.map((project, index) => (
           <ProjectCard3D
-            key={project.id || index}
+            key={project.id || `proj-${index}`}
             project={project}
             index={index}
             position={[index * 4, 0, 0]}
@@ -18,4 +34,3 @@ export default function ProjectGallery() {
     </ScrollControls>
   )
 }
-

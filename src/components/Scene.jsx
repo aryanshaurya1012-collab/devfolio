@@ -1,34 +1,43 @@
 import { Canvas } from '@react-three/fiber'
 import ProjectGallery from './ProjectGallery'
+import Hero3D from './Hero3D'
 import CRTEffect from './CRTEffect'
 
-export default function Scene() {
+export default function Scene({ portfolioData }) {
   return (
     <Canvas
       camera={{ position: [0, 0, 6], fov: 45 }}
-      gl={{ antialias: false, alpha: false }}
+      dpr={[1, 1.5]}
+      performance={{ min: 0.5 }}
+      gl={{ antialias: false, alpha: false, powerPreference: 'high-performance' }}
     >
       <color attach="background" args={['#0a0a0a']} />
 
-      {/* Moody cinematic lighting */}
-      <ambientLight intensity={0.2} />
+      {/* Cinematic Studio Lighting */}
+      <ambientLight intensity={0.25} />
       <spotLight
-        position={[-5, 5, 5]}
+        position={[-6, 6, 5]}
         color="#9945FF"
-        intensity={2}
+        intensity={2.2}
         penumbra={1}
       />
       <spotLight
-        position={[5, -5, 5]}
+        position={[6, -5, 5]}
         color="#14F195"
         intensity={2}
         penumbra={1}
       />
 
-      {/* Interactive 3D Project Gallery */}
-      <ProjectGallery />
+      {/* Reactive 3D Background Typography */}
+      <Hero3D
+        name={portfolioData?.name}
+        role={portfolioData?.role}
+      />
 
-      {/* CRT Post-processing Pipeline */}
+      {/* 3D Project Gallery */}
+      <ProjectGallery projects={portfolioData?.projects} />
+
+      {/* Optimized CRT Post-processing Pipeline */}
       <CRTEffect />
     </Canvas>
   )

@@ -3,7 +3,7 @@ import { BlendFunction } from 'postprocessing'
 
 export default function CRTEffect() {
   return (
-    <EffectComposer>
+    <EffectComposer multisampling={0} disableNormalPass>
       <ChromaticAberration
         offset={[0.001, 0.001]}
         radialModulation={false}
@@ -12,12 +12,12 @@ export default function CRTEffect() {
       <Scanline
         blendFunction={BlendFunction.OVERLAY}
         density={1.5}
-        opacity={0.15}
+        opacity={0.12}
       />
       <Noise
         premultiply
         blendFunction={BlendFunction.OVERLAY}
-        opacity={0.02}
+        opacity={0.01}
       />
       <Vignette
         eskil={false}

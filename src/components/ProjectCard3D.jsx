@@ -1,36 +1,89 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useMemo, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Text, Float } from '@react-three/drei'
 import * as THREE from 'three'
+import { easing } from 'maath'
+
+// Single global geometry compiled once to maximize WebGL performance
+const CARD_GEOMETRY = new THREE.BoxGeometry(3, 4, 0.1)
 
 export default function ProjectCard3D({ project, index, position = [0, 0, 0] }) {
   const cardGroupRef = useRef(null)
+  const meshRef = useRef(null)
   const [hovered, setHovered] = useState(false)
+  const worldPos = useMemo(() => new THREE.Vector3(), [])
 
-  const primaryTech = project.techStack?.[0] || project.technologies?.[0] || 'WEB3'
+  // Optimized material memoized once per card instance
+  const material = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: '#0f0f0f',
+        metalness: 0.8,
+        roughness: 0.2,
+      }),
+    [],
+  )
+
+  useEffect(() => {
+    return () => {
+      material.dispose()
+    }
+  }, [material])
+
+  // Gracefully handle empty or deleting states
+  const title = (project?.title || `PROJECT 0${index + 1}`).trim()
+  const tech = (
+    project?.tech ||
+    project?.techStack?.[0] ||
+    project?.technologies?.[0] ||
+    'WEB3 / DEV'
+  ).trim()
+  const category = (project?.category || 'MODULE').trim()
+  const description = (project?.description || '').trim()
 
   useFrame((_state, delta) => {
-    if (!cardGroupRef.current) return
+    if (!cardGroupRef.current || !meshRef.current) return
 
-    // Calculate the card's real-time world position to determine distance from center camera
-    const worldPos = new THREE.Vector3()
+    // Calculate real-time world position
     cardGroupRef.current.getWorldPosition(worldPos)
 
-    // Advanced Interaction: Cover-flow rotation facing the camera as cards scroll past
+    // Calculate parallax cover-flow rotation facing camera
     const targetRotY = -Math.max(-0.45, Math.min(0.45, worldPos.x * 0.1))
     const targetPosZ = -Math.min(1.2, Math.abs(worldPos.x) * 0.08)
 
-    cardGroupRef.current.rotation.y = THREE.MathUtils.damp(
-      cardGroupRef.current.rotation.y,
-      targetRotY,
-      4,
+    // Mathematically smoothed rotation with maath easing
+    easing.dampE(cardGroupRef.current.rotation, [0, targetRotY, 0], 0.22, delta)
+
+    // Smooth Z-depth parallax
+    easing.damp(cardGroupRef.current.position, 'z', targetPosZ, 0.22, delta)
+
+    // Smooth scale up on hover
+    const targetScale = hovered ? 1.05 : 1.0
+    easing.damp3(
+      cardGroupRef.current.scale,
+      [targetScale, targetScale, targetScale],
+      0.15,
       delta,
     )
 
-    cardGroupRef.current.position.z = THREE.MathUtils.damp(
-      cardGroupRef.current.position.z,
-      targetPosZ,
-      4,
+    // Smooth material color and emissive glow
+    easing.dampC(
+      meshRef.current.material.color,
+      hovered ? '#1c1c24' : '#0f0f0f',
+      0.15,
+      delta,
+    )
+    easing.dampC(
+      meshRef.current.material.emissive,
+      hovered ? '#14F195' : '#000000',
+      0.15,
+      delta,
+    )
+    easing.damp(
+      meshRef.current.material,
+      'emissiveIntensity',
+      hovered ? 0.25 : 0,
+      0.15,
       delta,
     )
   })
@@ -38,8 +91,11 @@ export default function ProjectCard3D({ project, index, position = [0, 0, 0] }) 
   return (
     <group ref={cardGroupRef} position={position}>
       <Float speed={2} rotationIntensity={0.2} floatIntensity={0.5}>
-        {/* Monolith card mesh */}
+        {/* Monolith card mesh with shared geometry and memoized material */}
         <mesh
+          ref={meshRef}
+          geometry={CARD_GEOMETRY}
+          material={material}
           onPointerOver={(e) => {
             e.stopPropagation()
             setHovered(true)
@@ -49,16 +105,7 @@ export default function ProjectCard3D({ project, index, position = [0, 0, 0] }) 
             setHovered(false)
             document.body.style.cursor = 'auto'
           }}
-        >
-          <boxGeometry args={[3, 4, 0.1]} />
-          <meshStandardMaterial
-            color={hovered ? '#18181b' : '#0f0f0f'}
-            metalness={0.8}
-            roughness={0.2}
-            emissive={hovered ? '#14F195' : '#000000'}
-            emissiveIntensity={hovered ? 0.18 : 0}
-          />
-        </mesh>
+        />
 
         {/* Top Eyebrow / Catalog Number */}
         <Text
@@ -69,12 +116,12 @@ export default function ProjectCard3D({ project, index, position = [0, 0, 0] }) 
           anchorX="center"
           anchorY="middle"
         >
-          {`[ 0${index + 1} // ${project.category || 'PROJECT'} ]`}
+          {`[ 0${index + 1} // ${category.toUpperCase()} ]`}
         </Text>
 
-        {/* Bold Title at Top of Card */}
+        {/* Bold Title at Top */}
         <Text
-          position={[0, 1.22, 0.06]}
+          position={[0, 1.2, 0.06]}
           fontSize={0.22}
           maxWidth={2.5}
           lineHeight={1.1}
@@ -83,11 +130,11 @@ export default function ProjectCard3D({ project, index, position = [0, 0, 0] }) 
           anchorY="middle"
           color="#ffffff"
         >
-          {project.title}
+          {title.toUpperCase()}
         </Text>
 
-        {/* Project Description */}
-        {project.description && (
+        {/* Project Description (if present) */}
+        {description && (
           <Text
             position={[0, 0.05, 0.06]}
             fontSize={0.12}
@@ -98,24 +145,23 @@ export default function ProjectCard3D({ project, index, position = [0, 0, 0] }) 
             anchorY="middle"
             color="#8892b0"
           >
-            {project.description}
+            {description}
           </Text>
         )}
 
-        {/* Tech Stack at Bottom of Card */}
+        {/* Dynamic Primary Tech Tag at Bottom */}
         <Text
           position={[0, -1.5, 0.06]}
           fontSize={0.16}
-          letterSpacing={0.1}
+          letterSpacing={0.12}
           textAlign="center"
           anchorX="center"
           anchorY="middle"
           color="#14F195"
         >
-          {primaryTech}
+          {tech.toUpperCase()}
         </Text>
       </Float>
     </group>
   )
 }
-
