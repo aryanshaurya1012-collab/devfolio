@@ -74,7 +74,10 @@ export default function App() {
             <span>::</span>
             <span>CH_01_FEED</span>
           </div>
-          <div>CRT_RENDER_V1 // 60HZ</div>
+          <div className="flex items-center gap-4">
+            <span className="hidden sm:inline text-zinc-400/80 animate-pulse">SCROLL TO EXPLORE //</span>
+            <span>CRT_RENDER_V2 // 60HZ</span>
+          </div>
         </footer>
       </div>
     </div>

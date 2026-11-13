@@ -5,26 +5,25 @@ export default function CRTEffect() {
   return (
     <EffectComposer>
       <ChromaticAberration
-        offset={[0.002, 0.002]}
+        offset={[0.001, 0.001]}
         radialModulation={false}
         modulationOffset={0}
       />
       <Scanline
         blendFunction={BlendFunction.OVERLAY}
-        density={2.5}
-        opacity={0.4}
+        density={1.5}
+        opacity={0.15}
       />
       <Noise
         premultiply
         blendFunction={BlendFunction.OVERLAY}
-        opacity={0.18}
+        opacity={0.02}
       />
       <Vignette
         eskil={false}
         offset={0.15}
-        darkness={0.95}
+        darkness={0.9}
       />
     </EffectComposer>
   )
 }
-
