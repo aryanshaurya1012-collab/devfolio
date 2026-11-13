@@ -1,5 +1,25 @@
-import { ScrollControls, Scroll } from '@react-three/drei'
+import { ScrollControls, Scroll, useScroll } from '@react-three/drei'
 import ProjectCard3D from './ProjectCard3D'
+
+function GalleryContent({ projects }) {
+  const scroll = useScroll()
+  const spacing = 7.0
+
+  return (
+    <>
+      {projects.map((project, index) => (
+        <ProjectCard3D
+          key={project.id || index}
+          project={project}
+          index={index}
+          totalProjects={projects.length}
+          position={[index * spacing, 0, 0]}
+          scroll={scroll}
+        />
+      ))}
+    </>
+  )
+}
 
 export default function ProjectGallery({ projects = [] }) {
   const safeProjects =
@@ -7,29 +27,35 @@ export default function ProjectGallery({ projects = [] }) {
       ? projects
       : [
           {
-            title: 'NEW PROJECT',
-            tech: 'REACT / WEB3',
-            category: 'DRAFT',
-            description: 'Add your first project using the editor sidebar.',
+            id: 'default-1',
+            title: 'AETHER PROTOCOL',
+            tech: 'Solidity, Three.js, React',
+            category: 'DeFi',
+            description:
+              'Decentralized liquidity visualizer with real-time on-chain telemetry.',
+          },
+          {
+            id: 'default-2',
+            title: 'NEURAL NEXUS',
+            tech: 'TypeScript, WebGL, Node.js',
+            category: 'AI Node',
+            description:
+              'Generative AI node orchestrator and monitoring console.',
           },
         ]
 
+  // Heavy, deliberate scroll physics (pages = projects.length * 0.5)
+  const pages = Math.max(1.5, safeProjects.length * 0.5)
+
   return (
     <ScrollControls
-      pages={Math.max(1, safeProjects.length)}
+      pages={pages}
       damping={0.15}
       distance={1.5}
       horizontal
     >
       <Scroll>
-        {safeProjects.map((project, index) => (
-          <ProjectCard3D
-            key={project.id || `proj-${index}`}
-            project={project}
-            index={index}
-            position={[index * 4, 0, 0]}
-          />
-        ))}
+        <GalleryContent projects={safeProjects} />
       </Scroll>
     </ScrollControls>
   )

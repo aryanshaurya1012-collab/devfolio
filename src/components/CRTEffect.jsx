@@ -5,7 +5,7 @@ export default function CRTEffect() {
   return (
     <EffectComposer multisampling={0} disableNormalPass>
       <ChromaticAberration
-        offset={[0.001, 0.001]}
+        offset={[0.0015, 0.0015]}
         radialModulation={false}
         modulationOffset={0}
       />
@@ -17,12 +17,12 @@ export default function CRTEffect() {
       <Noise
         premultiply
         blendFunction={BlendFunction.OVERLAY}
-        opacity={0.01}
+        opacity={0.015}
       />
       <Vignette
         eskil={false}
-        offset={0.15}
-        darkness={0.9}
+        offset={0.1}
+        darkness={1.1}
       />
     </EffectComposer>
   )

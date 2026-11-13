@@ -4,21 +4,26 @@ import { Html, Float } from '@react-three/drei'
 import * as THREE from 'three'
 import { easing } from 'maath'
 
-// Single global geometry — compiled once for all cards (aspect ratio matches 340x480 poster)
-const CARD_GEOMETRY = new THREE.BoxGeometry(3.4, 4.8, 0.1)
+// Global geometry compiled once for maximum WebGL performance
+const CARD_GEOMETRY = new THREE.PlaneGeometry(5, 7.5)
 
-export default function ProjectCard3D({ project, index, position = [0, 0, 0] }) {
+export default function ProjectCard3D({
+  project,
+  index,
+  totalProjects = 1,
+  position = [0, 0, 0],
+  scroll,
+}) {
   const cardGroupRef = useRef(null)
   const meshRef = useRef(null)
   const [hovered, setHovered] = useState(false)
-  const worldPos = useMemo(() => new THREE.Vector3(), [])
 
-  // Gracefully handle empty / mid-delete states
+  // Safe fallback metadata
   const title = (project?.title || `PROJECT 0${index + 1}`).trim()
   const category = (project?.category || 'MODULE').trim()
   const description = (project?.description || '').trim()
 
-  // Parse tech into array of chips
+  // Parse tech stack into individual badge strings
   const techList = useMemo(() => {
     if (Array.isArray(project?.techStack) && project.techStack.length > 0) {
       return project.techStack
@@ -32,39 +37,44 @@ export default function ProjectCard3D({ project, index, position = [0, 0, 0] }) 
     if (Array.isArray(project?.technologies) && project.technologies.length > 0) {
       return project.technologies
     }
-    return ['REACT', 'WEB3']
+    return ['REACT', 'THREE.JS', 'WEB3']
   }, [project])
 
   useFrame((_state, delta) => {
     if (!cardGroupRef.current) return
 
-    // Real-time world position for parallax math
-    cardGroupRef.current.getWorldPosition(worldPos)
+    // Calculate distance from center via scroll offset
+    const total = Math.max(1, totalProjects - 1)
+    const currentActiveIndex = scroll ? scroll.offset * total : 0
+    const indexDistance = Math.abs(index - currentActiveIndex)
+    const normalizedDist = Math.min(1, indexDistance)
 
-    // Cover-flow rotation facing camera
-    const targetRotY = -Math.max(-0.45, Math.min(0.45, worldPos.x * 0.1))
-    const targetPosZ = -Math.min(1.2, Math.abs(worldPos.x) * 0.08)
+    // Center = scale(1.1). Edges = scale(0.8)
+    const baseScale = 1.1 - normalizedDist * 0.3
+    const targetScale = hovered ? baseScale * 1.05 : baseScale
 
-    // Smooth rotation with maath easing
-    easing.dampE(cardGroupRef.current.rotation, [0, targetRotY, 0], 0.22, delta)
+    // 3D cover-flow rotation & depth recession
+    const targetRotY = -Math.max(
+      -0.35,
+      Math.min(0.35, (index - currentActiveIndex) * 0.3),
+    )
+    const targetPosZ = -Math.min(3, indexDistance * 0.8)
 
-    // Smooth Z-depth parallax
-    easing.damp(cardGroupRef.current.position, 'z', targetPosZ, 0.22, delta)
-
-    // Smooth scale on hover
-    const targetScale = hovered ? 1.06 : 1.0
+    // Fluid maath dampening
     easing.damp3(
       cardGroupRef.current.scale,
       [targetScale, targetScale, targetScale],
-      0.15,
+      0.2,
       delta,
     )
+    easing.dampE(cardGroupRef.current.rotation, [0, targetRotY, 0], 0.25, delta)
+    easing.damp(cardGroupRef.current.position, 'z', targetPosZ, 0.22, delta)
   })
 
   return (
     <group ref={cardGroupRef} position={position}>
-      <Float speed={2} rotationIntensity={0.2} floatIntensity={0.5}>
-        {/* Physical glass backing panel */}
+      <Float speed={1.5} rotationIntensity={0.15} floatIntensity={0.35}>
+        {/* Massive 5x7.5 Physical Glass Panel */}
         <mesh
           ref={meshRef}
           geometry={CARD_GEOMETRY}
@@ -79,76 +89,66 @@ export default function ProjectCard3D({ project, index, position = [0, 0, 0] }) 
           }}
         >
           <meshPhysicalMaterial
-            transmission={0.88}
-            opacity={1}
-            metalness={0.5}
-            roughness={0.12}
-            ior={1.5}
-            thickness={0.5}
-            color="#12121a"
+            transmission={0.9}
+            roughness={0.1}
+            metalness={0.8}
+            clearcoat={1}
+            color="#050505"
             transparent
           />
         </mesh>
 
-        {/* Physical VHS / Poster Card Projection with CRT Scanlines & Neon Sheen */}
+        {/* Razor-Sharp HTML Projected Overlay */}
         <Html
           transform
-          distanceFactor={1.5}
-          position={[0, 0, 0.08]}
+          distanceFactor={3.5}
+          position={[0, 0, 0.05]}
           style={{ pointerEvents: 'none' }}
         >
           <div
-            className={`relative w-[340px] h-[480px] bg-gradient-to-br from-black via-[#0a0a1a] to-[#1a0b2e] border ${
-              hovered ? 'border-[#14F195]/50' : 'border-white/20'
-            } rounded-xl p-8 flex flex-col justify-between backdrop-blur-md shadow-[0_0_30px_rgba(153,69,255,0.2)] select-none overflow-hidden transition-all duration-300`}
+            className={`w-[40vw] min-w-[400px] h-[60vh] min-h-[600px] flex flex-col justify-between p-10 bg-gradient-to-br from-black/80 to-black/40 backdrop-blur-2xl border-2 ${
+              hovered ? 'border-[#14F195]/60 shadow-[0_0_60px_rgba(20,241,149,0.3)]' : 'border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)]'
+            } rounded-3xl overflow-hidden select-none transition-colors duration-300`}
             style={{
               pointerEvents: 'none',
               backgroundImage: `
-                radial-gradient(ellipse at top right, rgba(153, 69, 255, 0.25), transparent 60%),
+                radial-gradient(ellipse at top right, rgba(153, 69, 255, 0.2), transparent 60%),
                 radial-gradient(ellipse at bottom left, rgba(20, 241, 149, 0.15), transparent 50%),
-                repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.03) 0px, rgba(255, 255, 255, 0.03) 1px, transparent 1px, transparent 3px)
+                repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.02) 0px, rgba(255, 255, 255, 0.02) 1px, transparent 1px, transparent 3px)
               `,
             }}
           >
-            {/* Top: Index & VHS Metadata */}
+            {/* Top Eyebrow & Status */}
             <div>
-              <div className="flex items-center justify-between mb-5 border-b border-white/10 pb-3">
-                <span className="font-mono text-[10px] tracking-[0.25em] text-[#9945FF] font-bold uppercase">
-                  {`[ 0${index + 1} // ${category.toUpperCase()} ]`}
+              <div className="flex items-center justify-between mb-8 border-b border-white/10 pb-4">
+                <span className="font-mono text-xs md:text-sm tracking-[0.25em] text-[#14F195] font-bold uppercase">
+                  {`// 0${index + 1}  ${category.toUpperCase()}`}
                 </span>
-                <div className="flex items-center gap-1.5 font-mono text-[9px] text-zinc-400 tracking-wider">
-                  <span
-                    className={`h-2 w-2 rounded-full ${
-                      hovered ? 'bg-[#14F195] animate-ping' : 'bg-[#9945FF]'
-                    }`}
-                  />
-                  <span>VHS_TAPE</span>
+                <div className="flex items-center gap-2 font-mono text-xs text-zinc-400 tracking-widest">
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#14F195] animate-pulse shadow-[0_0_8px_#14F195]" />
+                  <span>DEV_OS</span>
                 </div>
               </div>
 
-              {/* Title: Massive and aggressive */}
-              <h3 className="font-black text-4xl text-white uppercase tracking-tighter leading-none mb-4 break-words drop-shadow-[0_2px_12px_rgba(255,255,255,0.25)]">
+              {/* Massive Aggressive Title */}
+              <h3 className="font-black text-6xl md:text-8xl tracking-tighter uppercase text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500 leading-none">
                 {title}
               </h3>
 
               {/* Description */}
-              <p className="font-mono text-sm text-gray-400 mb-6 leading-relaxed line-clamp-3">
+              <p className="font-mono text-lg md:text-xl text-gray-400 mt-6 leading-relaxed line-clamp-4">
                 {description ||
-                  'Architected on high-performance decentralized systems with real-time reactive shaders.'}
+                  'High-performance decentralized interface and real-time WebGL graphics module.'}
               </p>
             </div>
 
-            {/* Bottom: Glowing Tech Chips & Catalog Stamp */}
-            <div className="border-t border-white/10 pt-4">
-              <div className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest mb-2.5 flex items-center justify-between">
-                <span>TECH MATRIX</span>
-                <span>TXSIGHT // 2026</span>
-              </div>
-              <div className="flex flex-wrap gap-2">
+            {/* Bottom: Neon Tech Stack Pills */}
+            <div className="border-t border-white/10 pt-6">
+              <div className="flex flex-wrap gap-2.5">
                 {techList.map((t) => (
                   <span
                     key={t}
-                    className="px-2 py-1 text-xs bg-white/10 text-[#14F195] border border-[#14F195]/30 rounded font-mono shadow-[0_0_12px_rgba(20,241,149,0.18)]"
+                    className="px-4 py-2 bg-[#14F195]/10 text-[#14F195] border border-[#14F195]/30 rounded-full font-mono text-sm font-bold shadow-[0_0_15px_rgba(20,241,149,0.15)]"
                   >
                     {t.toUpperCase()}
                   </span>
