@@ -53,10 +53,10 @@ export default function ProfileDrawer({ isOpen, onClose, portfolioData }) {
               <div className="pt-8 space-y-6">
                 <div>
                   <h3 className="font-serif text-3xl sm:text-4xl text-white font-normal leading-tight">
-                    {portfolioData.name || 'SHAURYA ARYAN'}
+                    {portfolioData.name || 'ALEXANDER VANE'}
                   </h3>
                   <p className="font-sans text-sm text-amber-400/90 font-medium tracking-wide mt-1">
-                    {portfolioData.role || 'Full Stack & Web3 Architect'}
+                    {portfolioData.role || 'Creative Developer & Systems Architect'}
                   </p>
 
                   {portfolioData.location && (

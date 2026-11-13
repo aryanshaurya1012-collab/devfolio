@@ -7,7 +7,7 @@ export default function ContactModal({ isOpen, onClose, portfolioData }) {
   const [message, setMessage] = useState('')
   const [sent, setSent] = useState(false)
 
-  const email = portfolioData.socials?.email || 'shaurya@example.com'
+  const email = portfolioData.socials?.email || 'contact@studio-vane.io'
 
   useEffect(() => {
     function handleKeyDown(e) {

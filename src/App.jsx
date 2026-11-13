@@ -6,13 +6,26 @@ import CaseStudyModal from './components/CaseStudyModal';
 import EditorModal from './components/EditorModal';
 import { defaultPortfolioData, THEMES } from './data/portfolio';
 
+const STORAGE_KEY = 'devos_showcase_v3';
+
 export default function App() {
   const [portfolioData, setPortfolioData] = useState(() => {
     try {
-      const saved = localStorage.getItem('devos_portfolio_v2');
+      // Purge legacy storage keys to guarantee no old user data persists
+      localStorage.removeItem('devos_portfolio_v2');
+      localStorage.removeItem('devos_portfolio_data');
+      localStorage.removeItem('portfolio_maker_data');
+
+      const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed?.projects?.length) return parsed;
+        if (
+          parsed?.projects?.length &&
+          !parsed?.name?.toLowerCase().includes('shaurya') &&
+          !parsed?.name?.toLowerCase().includes('aryan')
+        ) {
+          return parsed;
+        }
       }
       return defaultPortfolioData;
     } catch {
@@ -30,7 +43,7 @@ export default function App() {
   // Sync to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem('devos_portfolio_v2', JSON.stringify(portfolioData));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(portfolioData));
     } catch (e) {
       console.error(e);
     }
@@ -253,7 +266,7 @@ export default function App() {
         portfolioData={portfolioData}
         setPortfolioData={setPortfolioData}
         onResetDefault={() => {
-          localStorage.removeItem('devos_portfolio_v2');
+          localStorage.removeItem(STORAGE_KEY);
           setPortfolioData(defaultPortfolioData);
           setActiveIndex(0);
         }}

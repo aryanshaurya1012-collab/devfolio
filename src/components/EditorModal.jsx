@@ -181,7 +181,7 @@ export default function EditorModal({
                   type="button"
                   onClick={onResetDefault}
                   className="font-sans text-xs text-zinc-400 hover:text-white px-3 py-1.5 rounded-full border border-white/10 hover:border-white transition-all flex items-center gap-1.5 cursor-pointer"
-                  title="Reset to default Shaurya Aryan portfolio"
+                  title="Reset to default showcase portfolio"
                 >
                   <RotateCcw size={13} />
                   <span className="hidden sm:inline">Reset Defaults</span>
@@ -257,7 +257,7 @@ export default function EditorModal({
                       type="text"
                       value={portfolioData.name || ''}
                       onChange={(e) => handleProfileChange('name', e.target.value)}
-                      placeholder="e.g. SHAURYA ARYAN"
+                      placeholder="e.g. ALEXANDER VANE"
                       className={inputCls}
                     />
                   </div>
@@ -270,7 +270,7 @@ export default function EditorModal({
                       type="text"
                       value={portfolioData.role || ''}
                       onChange={(e) => handleProfileChange('role', e.target.value)}
-                      placeholder="e.g. Full Stack & Web3 Architect"
+                      placeholder="e.g. Creative Developer & Architect"
                       className={inputCls}
                     />
                   </div>
@@ -285,7 +285,7 @@ export default function EditorModal({
                       onChange={(e) =>
                         handleProfileChange('location', e.target.value)
                       }
-                      placeholder="e.g. Kolkata, India"
+                      placeholder="e.g. San Francisco, CA"
                       className={inputCls}
                     />
                   </div>
@@ -319,7 +319,7 @@ export default function EditorModal({
                       type="text"
                       value={portfolioData.socials?.github || ''}
                       onChange={(e) => handleSocialChange('github', e.target.value)}
-                      placeholder="https://github.com/aryanshaurya1012-collab"
+                      placeholder="https://github.com/username"
                       className={inputCls}
                     />
                   </div>
@@ -358,7 +358,7 @@ export default function EditorModal({
                       type="email"
                       value={portfolioData.socials?.email || ''}
                       onChange={(e) => handleSocialChange('email', e.target.value)}
-                      placeholder="shaurya@example.com"
+                      placeholder="hello@example.com"
                       className={inputCls}
                     />
                   </div>
@@ -400,7 +400,7 @@ export default function EditorModal({
                           onChange={(e) =>
                             setNewProject((p) => ({ ...p, title: e.target.value }))
                           }
-                          placeholder="e.g. TxSight"
+                          placeholder="e.g. Aether"
                           className={inputCls}
                         />
                       </div>
@@ -415,7 +415,7 @@ export default function EditorModal({
                           onChange={(e) =>
                             setNewProject((p) => ({ ...p, category: e.target.value }))
                           }
-                          placeholder="WEB3 SECURITY"
+                          placeholder="PROTOCOL INTERFACE"
                           className={inputCls}
                         />
                       </div>
@@ -471,7 +471,7 @@ export default function EditorModal({
                           onChange={(e) =>
                             setNewProject((p) => ({ ...p, tech: e.target.value }))
                           }
-                          placeholder="Next.js, Solana Kit, Gemini AI"
+                          placeholder="React, Three.js, WebGL"
                           className={inputCls}
                         />
                       </div>

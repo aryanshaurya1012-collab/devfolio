@@ -82,36 +82,23 @@ export default function CaseStudyModal({ project, isOpen, onClose }) {
                 Architecture &amp; Key Innovations
               </h4>
               <div className="space-y-3 font-sans text-xs sm:text-sm text-zinc-300">
-                <div className="flex items-start gap-2.5 p-3 rounded-xl bg-white/[0.02] border border-white/5">
-                  <CheckCircle2
-                    size={16}
-                    className="shrink-0 mt-0.5"
-                    style={{ color: project.accent || '#f59e0b' }}
-                  />
-                  <span>
-                    Deterministic transaction validation guard eliminating malicious blind-signing vectors.
-                  </span>
-                </div>
-                <div className="flex items-start gap-2.5 p-3 rounded-xl bg-white/[0.02] border border-white/5">
-                  <CheckCircle2
-                    size={16}
-                    className="shrink-0 mt-0.5"
-                    style={{ color: project.accent || '#f59e0b' }}
-                  />
-                  <span>
-                    Sub-second cryptographic entropy inspection pipeline built for zero latency overhead.
-                  </span>
-                </div>
-                <div className="flex items-start gap-2.5 p-3 rounded-xl bg-white/[0.02] border border-white/5">
-                  <CheckCircle2
-                    size={16}
-                    className="shrink-0 mt-0.5"
-                    style={{ color: project.accent || '#f59e0b' }}
-                  />
-                  <span>
-                    Physical WebGL visual telemetry rendering real-time on-chain security metrics.
-                  </span>
-                </div>
+                {(project.highlights || [
+                  'High-performance real-time rendering architecture designed for 60+ FPS fidelity.',
+                  'Zero-latency state synchronization with reactive physical material pipelines.',
+                  'Modular design system with strict type safety and accessible interaction layers.',
+                ]).map((highlight, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-start gap-2.5 p-3 rounded-xl bg-white/[0.02] border border-white/5"
+                  >
+                    <CheckCircle2
+                      size={16}
+                      className="shrink-0 mt-0.5"
+                      style={{ color: project.accent || '#f59e0b' }}
+                    />
+                    <span>{highlight}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
