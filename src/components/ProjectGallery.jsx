@@ -9,6 +9,8 @@ export default function ProjectGallery({
   setActiveIndex,
   onInspectProject,
   isModalOpen = false,
+  themeConfig,
+  mode = 'dark',
 }) {
   const smoothIndex = useRef(activeIndex);
 
@@ -19,7 +21,7 @@ export default function ProjectGallery({
   if (!projects.length) return null;
 
   return (
-    <group position={[0, 0, 0]}>
+    <group position={[0, -0.15, 0]}>
       {projects.map((project, index) => (
         <ProjectCard3D
           key={project.id || index}
@@ -27,9 +29,11 @@ export default function ProjectGallery({
           index={index}
           totalProjects={projects.length}
           smoothIndex={smoothIndex}
-          spacing={5.6}
+          spacing={5.5}
           onSelectProject={setActiveIndex}
           onInspectProject={onInspectProject}
+          themeConfig={themeConfig}
+          mode={mode}
         />
       ))}
     </group>

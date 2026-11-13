@@ -19,7 +19,9 @@ export default function EditorModal({
   portfolioData,
   setPortfolioData,
   onResetDefault,
+  mode = 'dark',
 }) {
+  const isLight = (mode || portfolioData?.mode) === 'light';
   const [copied, setCopied] = useState(false)
   const [showAddProject, setShowAddProject] = useState(false)
   const [newProject, setNewProject] = useState({
@@ -141,8 +143,9 @@ export default function EditorModal({
     URL.revokeObjectURL(url)
   }
 
-  const inputCls =
-    'bg-transparent border-b border-[#333] text-white font-sans focus:border-amber-400 transition-colors py-2 outline-none w-full text-xs sm:text-sm placeholder:text-[#555]'
+  const inputCls = isLight
+    ? 'bg-black/[0.04] border-b border-black/20 text-zinc-900 font-sans focus:border-purple-600 transition-colors py-2 outline-none w-full text-xs sm:text-sm placeholder:text-zinc-400'
+    : 'bg-transparent border-b border-[#333] text-white font-sans focus:border-amber-400 transition-colors py-2 outline-none w-full text-xs sm:text-sm placeholder:text-[#555]'
 
   return (
     <AnimatePresence>
@@ -161,17 +164,33 @@ export default function EditorModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 15 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="w-[90vw] max-w-4xl max-h-[85vh] overflow-y-auto bg-[#0d0a12] border border-white/20 rounded-3xl p-8 sm:p-10 shadow-2xl text-[#e0e0e0] font-sans flex flex-col justify-between space-y-8 select-none relative"
+            className={`w-[90vw] max-w-4xl max-h-[85vh] overflow-y-auto border rounded-3xl p-8 sm:p-10 shadow-2xl font-sans flex flex-col justify-between space-y-8 select-none relative ${
+              isLight
+                ? 'bg-white/98 border-black/15 text-zinc-900 shadow-2xl'
+                : 'bg-[#0d0a12] border-white/20 text-[#e0e0e0] shadow-2xl'
+            }`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between pb-6 border-b border-white/10">
+            <div
+              className={`flex items-center justify-between pb-6 border-b ${
+                isLight ? 'border-black/10' : 'border-white/10'
+              }`}
+            >
               <div>
-                <h3 className="font-serif text-3xl text-white tracking-tight flex items-center gap-2.5">
-                  <Sparkles size={22} className="text-amber-400" />
+                <h3
+                  className={`font-serif text-3xl tracking-tight flex items-center gap-2.5 ${
+                    isLight ? 'text-zinc-950 font-medium' : 'text-white'
+                  }`}
+                >
+                  <Sparkles size={22} className={isLight ? 'text-purple-600' : 'text-amber-400'} />
                   <span>SaaS Studio &amp; Architecture</span>
                 </h3>
-                <p className="font-sans text-xs text-zinc-400 uppercase tracking-widest mt-1">
+                <p
+                  className={`font-sans text-xs uppercase tracking-widest mt-1 ${
+                    isLight ? 'text-zinc-600 font-semibold' : 'text-zinc-400'
+                  }`}
+                >
                   DEV-OS 3D High-Contrast Matrix Configurator
                 </p>
               </div>
