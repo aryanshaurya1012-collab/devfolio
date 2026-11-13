@@ -21,7 +21,8 @@ export default function ProjectGallery({
   if (!projects.length) return null;
 
   return (
-    <group position={[0, -0.15, 0]}>
+    // y = 0.08 provides balanced vertical centering between header and footer
+    <group position={[0, 0.08, 0]}>
       {projects.map((project, index) => (
         <ProjectCard3D
           key={project.id || index}
