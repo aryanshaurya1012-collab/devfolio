@@ -1,13 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Scene from './components/Scene';
-import EditorCommandCenter from './components/EditorCommandCenter';
+import ProfileDrawer from './components/ProfileDrawer';
+import ContactModal from './components/ContactModal';
+import CaseStudyModal from './components/CaseStudyModal';
+import EditorModal from './components/EditorModal';
 import { defaultPortfolioData, THEMES } from './data/portfolio';
 
 export default function App() {
   const [portfolioData, setPortfolioData] = useState(() => {
     try {
       const saved = localStorage.getItem('devos_portfolio_v2');
-      return saved ? JSON.parse(saved) : defaultPortfolioData;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.projects?.length) return parsed;
+      }
+      return defaultPortfolioData;
     } catch {
       return defaultPortfolioData;
     }
@@ -15,10 +22,12 @@ export default function App() {
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const [activeDrawer, setActiveDrawer] = useState(null); // 'profile' | 'contact' | null
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isContactOpen, setIsContactOpen] = useState(false);
   const [inspectedProject, setInspectedProject] = useState(null);
   const wheelCooldown = useRef(false);
 
+  // Sync to localStorage
   useEffect(() => {
     try {
       localStorage.setItem('devos_portfolio_v2', JSON.stringify(portfolioData));
@@ -27,9 +36,16 @@ export default function App() {
     }
   }, [portfolioData]);
 
-  const totalProjects = portfolioData.projects.length;
-  const currentTheme = THEMES[portfolioData.theme] || THEMES.amber;
-  const isAnyModalOpen = isEditorOpen || Boolean(activeDrawer) || Boolean(inspectedProject);
+  const totalProjects = portfolioData.projects?.length || 1;
+  const currentTheme = THEMES[portfolioData.theme] || THEMES.obsidian || THEMES.amber;
+  const isAnyModalOpen = isEditorOpen || isProfileOpen || isContactOpen || Boolean(inspectedProject);
+
+  // Clamp activeIndex if project count changes
+  useEffect(() => {
+    if (activeIndex >= totalProjects) {
+      setActiveIndex(Math.max(0, totalProjects - 1));
+    }
+  }, [totalProjects, activeIndex]);
 
   // Smooth Wheel & Keyboard Carousel Navigation
   useEffect(() => {
@@ -42,7 +58,7 @@ export default function App() {
       wheelCooldown.current = true;
       setTimeout(() => {
         wheelCooldown.current = false;
-      }, 320);
+      }, 300);
 
       if (delta > 0) {
         setActiveIndex((prev) => Math.min(totalProjects - 1, prev + 1));
@@ -53,9 +69,9 @@ export default function App() {
 
     const handleKeyDown = (e) => {
       if (isAnyModalOpen) return;
-      if (e.key === 'ArrowRight') {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
         setActiveIndex((prev) => Math.min(totalProjects - 1, prev + 1));
-      } else if (e.key === 'ArrowLeft') {
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
         setActiveIndex((prev) => Math.max(0, prev - 1));
       }
     };
@@ -70,12 +86,16 @@ export default function App() {
 
   return (
     <div
-      className="fixed inset-0 w-screen h-screen overflow-hidden select-none text-white"
+      className="fixed inset-0 w-screen h-screen overflow-hidden select-none text-white transition-colors duration-700"
       style={{ background: currentTheme.cssBg }}
     >
       {/* 3D WebGL Background Canvas */}
       <div className="absolute inset-0 z-0">
-        <Scene activeIndex="{activeIndex}" onInspectProject="{(proj)" portfolioData="{portfolioData}" setActiveIndex="{setActiveIndex}"> setInspectedProject(proj)}
+        <Scene
+          portfolioData={portfolioData}
+          activeIndex={activeIndex}
+          setActiveIndex={setActiveIndex}
+          onInspectProject={(proj) => setInspectedProject(proj)}
           isModalOpen={isAnyModalOpen}
         />
       </div>
@@ -83,7 +103,7 @@ export default function App() {
       {/* Top Editorial HUD Header */}
       <header className="absolute top-0 left-0 right-0 z-20 px-6 sm:px-12 py-7 flex items-center justify-between pointer-events-none">
         <div className="flex items-center gap-4 pointer-events-auto">
-          <span className="text-xs tracking-[0.25em] uppercase text-white/75 font-medium">
+          <span className="text-xs tracking-[0.25em] uppercase text-white/75 font-mono font-medium">
             DEVFOLIO © 2026
           </span>
           {/* Theme Aroma Switcher Pills */}
@@ -91,10 +111,12 @@ export default function App() {
             {Object.entries(THEMES).map(([key, t]) => (
               <button
                 key={key}
+                type="button"
                 onClick={() => setPortfolioData((prev) => ({ ...prev, theme: key }))}
                 title={t.name}
-                className={`w-3.5 h-3.5 rounded-full transition-transform ${portfolioData.theme === key ? 'scale-125 ring-2 ring-white' : 'opacity-60 hover:opacity-100'
-                  }`}
+                className={`w-3.5 h-3.5 rounded-full transition-transform cursor-pointer ${
+                  portfolioData.theme === key ? 'scale-125 ring-2 ring-white' : 'opacity-60 hover:opacity-100'
+                }`}
                 style={{ backgroundColor: t.keyLight }}
               />
             ))}
@@ -112,25 +134,30 @@ export default function App() {
         </div>
 
         {/* Right Interactive Navigation */}
-        <nav className="flex items-center gap-6 text-xs tracking-[0.22em] uppercase pointer-events-auto">
+        <nav className="flex items-center gap-6 text-xs tracking-[0.22em] uppercase pointer-events-auto font-mono">
           <button
+            type="button"
             onClick={() => {
-              setActiveDrawer(null);
+              setIsProfileOpen(false);
+              setIsContactOpen(false);
               setInspectedProject(null);
+              setIsEditorOpen(false);
             }}
-            className="text-white hover:text-amber-300 transition"
+            className="text-white hover:text-amber-300 transition cursor-pointer"
           >
             Work
           </button>
           <button
-            onClick={() => setActiveDrawer('profile')}
-            className="text-white/80 hover:text-amber-300 transition"
+            type="button"
+            onClick={() => setIsProfileOpen(true)}
+            className="text-white/80 hover:text-amber-300 transition cursor-pointer"
           >
             Profile
           </button>
           <button
-            onClick={() => setActiveDrawer('contact')}
-            className="text-white/80 hover:text-amber-300 transition"
+            type="button"
+            onClick={() => setIsContactOpen(true)}
+            className="text-white/80 hover:text-amber-300 transition cursor-pointer"
           >
             Contact
           </button>
@@ -139,18 +166,21 @@ export default function App() {
 
       {/* Bottom Interactive Carousel Controls & Builder Bar */}
       <footer className="absolute bottom-7 left-0 right-0 z-20 px-6 sm:px-12 flex items-center justify-between pointer-events-none">
-        {/* Left: Active Card Counter */}
+        {/* Left: Active Card Indicator Dots */}
         <div className="hidden sm:flex items-center gap-3 pointer-events-auto bg-black/45 border border-white/15 backdrop-blur-md px-4 py-2 rounded-full">
-          <span className="text-[11px] tracking-[0.2em] uppercase text-white/70">
-            SCROLL OR CLICK
+          <span className="text-[11px] tracking-[0.2em] uppercase text-white/70 font-mono">
+            GALLERY
           </span>
           <div className="flex items-center gap-1.5">
             {portfolioData.projects.map((_, idx) => (
               <button
                 key={idx}
+                type="button"
                 onClick={() => setActiveIndex(idx)}
-                className={`h-1.5 rounded-full transition-all ${activeIndex === idx ? 'w-6 bg-amber-400' : 'w-2 bg-white/30 hover:bg-white/60'
-                  }`}
+                className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                  activeIndex === idx ? 'w-6 bg-amber-400' : 'w-2 bg-white/30 hover:bg-white/60'
+                }`}
+                title={`Project 0${idx + 1}`}
               />
             ))}
           </div>
@@ -159,24 +189,29 @@ export default function App() {
         {/* Center: Prev / Edit Portfolio / Next Controls */}
         <div className="mx-auto flex items-center gap-3 pointer-events-auto">
           <button
+            type="button"
             onClick={() => setActiveIndex((prev) => Math.max(0, prev - 1))}
             disabled={activeIndex === 0}
-            className="w-10 h-10 rounded-full border border-white/20 bg-black/50 backdrop-blur-md text-white disabled:opacity-30 hover:bg-white hover:text-black transition flex items-center justify-center"
+            className="w-10 h-10 rounded-full border border-white/20 bg-black/50 backdrop-blur-md text-white disabled:opacity-30 hover:bg-white hover:text-black transition flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
+            aria-label="Previous Project"
           >
             ←
           </button>
 
           <button
+            type="button"
             onClick={() => setIsEditorOpen(true)}
-            className="px-7 py-2.5 rounded-full border border-amber-400/50 bg-black/65 backdrop-blur-xl text-white text-xs font-semibold tracking-[0.22em] uppercase hover:bg-amber-400 hover:text-black shadow-[0_0_30px_rgba(245,158,11,0.25)] transition-all duration-300"
+            className="px-7 py-2.5 rounded-full border border-amber-400/50 bg-black/65 backdrop-blur-xl text-white text-xs font-semibold tracking-[0.22em] uppercase hover:bg-amber-400 hover:text-black shadow-[0_0_30px_rgba(245,158,11,0.25)] transition-all duration-300 cursor-pointer"
           >
             ✦ Edit Portfolio
           </button>
 
           <button
+            type="button"
             onClick={() => setActiveIndex((prev) => Math.min(totalProjects - 1, prev + 1))}
             disabled={activeIndex === totalProjects - 1}
-            className="w-10 h-10 rounded-full border border-white/20 bg-black/50 backdrop-blur-md text-white disabled:opacity-30 hover:bg-white hover:text-black transition flex items-center justify-center"
+            className="w-10 h-10 rounded-full border border-white/20 bg-black/50 backdrop-blur-md text-white disabled:opacity-30 hover:bg-white hover:text-black transition flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
+            aria-label="Next Project"
           >
             →
           </button>
@@ -184,133 +219,40 @@ export default function App() {
 
         {/* Right: Active Project Quick Label */}
         <div className="hidden sm:block text-right pointer-events-auto">
-          <span className="text-[11px] tracking-[0.22em] uppercase text-white/60">
-            ACTIVE // {portfolioData.projects[activeIndex]?.title}
+          <span className="text-[11px] tracking-[0.22em] uppercase text-white/60 font-mono">
+            ACTIVE // {portfolioData.projects[activeIndex]?.title || 'PROJECT'}
           </span>
         </div>
       </footer>
 
-      {/* Profile & Contact Drawer Modal */}
-      {activeDrawer && (
-        <div
-          onClick={() => setActiveDrawer(null)}
-          className="fixed inset-0 z-40 bg-black/75 backdrop-blur-xl flex items-center justify-center p-6"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-xl bg-[#15111c] border border-white/20 rounded-3xl p-8 text-white shadow-2xl"
-          >
-            <div className="flex justify-between items-center mb-6">
-              <span className="text-xs tracking-[0.25em] uppercase text-amber-400">
-                {activeDrawer === 'profile' ? '01 // ARCHITECT PROFILE' : '02 // DIRECT DISPATCH'}
-              </span>
-              <button
-                onClick={() => setActiveDrawer(null)}
-                className="text-xs uppercase tracking-widest px-3 py-1 rounded-lg bg-white/10 hover:bg-white hover:text-black"
-              >
-                Close ✕
-              </button>
-            </div>
+      {/* Profile Slide-Over Drawer */}
+      <ProfileDrawer
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+        portfolioData={portfolioData}
+      />
 
-            {activeDrawer === 'profile' ? (
-              <div>
-                <h2 className="font-serif text-4xl mb-2">{portfolioData.name}</h2>
-                <p className="text-sm text-amber-300 mb-5">{portfolioData.role}</p>
-                <p className="text-sm text-zinc-300 leading-relaxed mb-6">{portfolioData.bio}</p>
-                <div className="flex flex-wrap gap-2">
-                  {(portfolioData.skills || []).map((skill, i) => (
-                    <span
-                      key={i}
-                      className="px-3 py-1 text-xs rounded-full bg-white/10 border border-white/15"
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <h2 className="font-serif text-4xl mb-2">Initiate Contact</h2>
-                <p className="text-sm text-zinc-300">
-                  Available for Web3 hackathons, full-stack engineering roles, and creative collaborations.
-                </p>
-                <div className="pt-4 flex flex-col gap-3">
-                  <a
-                    href={`mailto:${portfolioData.socials?.email || 'hello@example.com'}`}
-                    className="w-full py-3 rounded-xl bg-amber-400 text-black font-semibold text-center text-xs uppercase tracking-widest"
-                  >
-                    Send Direct Email ↗
-                  </a>
-                  <a
-                    href={portfolioData.socials?.github || '#'}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="w-full py-3 rounded-xl bg-white/10 border border-white/15 text-center text-xs uppercase tracking-widest hover:bg-white hover:text-black transition"
-                  >
-                    GitHub Profile ↗
-                  </a>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Contact Direct Modal */}
+      <ContactModal
+        isOpen={isContactOpen}
+        onClose={() => setIsContactOpen(false)}
+        portfolioData={portfolioData}
+      />
 
-      {/* Inspected Project Case Study Modal */}
-      {inspectedProject && (
-        <div
-          onClick={() => setInspectedProject(null)}
-          className="fixed inset-0 z-40 bg-black/80 backdrop-blur-xl flex items-center justify-center p-6"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-lg bg-[#16121e] border border-white/20 rounded-3xl p-8 text-white shadow-2xl"
-          >
-            <span className="text-xs tracking-[0.2em] uppercase text-amber-400">
-              {inspectedProject.category} • {inspectedProject.year}
-            </span>
-            <h2 className="font-serif text-5xl uppercase my-3">{inspectedProject.title}</h2>
-            <p className="text-sm text-zinc-300 leading-relaxed mb-6">
-              {inspectedProject.description}
-            </p>
-            <div className="flex flex-wrap gap-2 mb-8">
-              {(Array.isArray(inspectedProject.tech)
-                ? inspectedProject.tech
-                : String(inspectedProject.tech).split(',')
-              ).map((t, i) => (
-                <span
-                  key={i}
-                  className="px-3 py-1 text-xs bg-white/10 border border-white/15 rounded-full"
-                >
-                  {t}
-                </span>
-              ))}
-            </div>
-            <div className="flex gap-3">
-              <a
-                href={inspectedProject.liveUrl || '#'}
-                target="_blank"
-                rel="noreferrer"
-                className="flex-1 py-3 rounded-xl bg-white text-black font-semibold text-center text-xs uppercase tracking-widest hover:bg-amber-400 transition"
-              >
-                Launch Project ↗
-              </a>
-              <button
-                onClick={() => setInspectedProject(null)}
-                className="px-6 py-3 rounded-xl border border-white/20 text-xs uppercase tracking-widest hover:bg-white/10"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Case Study Modal */}
+      <CaseStudyModal
+        isOpen={Boolean(inspectedProject)}
+        onClose={() => setInspectedProject(null)}
+        project={inspectedProject}
+      />
 
       {/* SaaS Portfolio Maker Studio */}
-      <EditorCommandCenter isOpen="{isEditorOpen}" onClose="{()"> setIsEditorOpen(false)}
+      <EditorModal
+        isOpen={isEditorOpen}
+        onClose={() => setIsEditorOpen(false)}
         portfolioData={portfolioData}
         setPortfolioData={setPortfolioData}
-        onReset={() => {
+        onResetDefault={() => {
           localStorage.removeItem('devos_portfolio_v2');
           setPortfolioData(defaultPortfolioData);
           setActiveIndex(0);

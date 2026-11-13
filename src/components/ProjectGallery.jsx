@@ -5,25 +5,31 @@ import ProjectCard3D from './ProjectCard3D';
 
 export default function ProjectGallery({
   projects = [],
-  activeIndex,
+  activeIndex = 0,
   setActiveIndex,
   onInspectProject,
-  isModalOpen
+  isModalOpen = false,
 }) {
-  const activeIndexRef = useRef(0);
+  const smoothIndex = useRef(activeIndex);
 
   useFrame((_, delta) => {
-    easing.damp(activeIndexRef, 'current', activeIndex, 0.18, delta);
+    easing.damp(smoothIndex, 'current', activeIndex, 0.22, delta);
   });
 
   if (!projects.length) return null;
 
   return (
-    <group position={[0, 0.1, 0]}>
+    <group position={[0, 0, 0]}>
       {projects.map((project, index) => (
-        <ProjectCard3D activeIndexRef="{activeIndexRef}" index="{index}" index} key="{project.id" onSelectProject="{(idx)" project="{project}" total="{projects.length}" ||> setActiveIndex(idx)}
-      onInspectProject={onInspectProject}
-      isModalOpen={isModalOpen}
+        <ProjectCard3D
+          key={project.id || index}
+          project={project}
+          index={index}
+          totalProjects={projects.length}
+          smoothIndex={smoothIndex}
+          spacing={5.6}
+          onSelectProject={setActiveIndex}
+          onInspectProject={onInspectProject}
         />
       ))}
     </group>

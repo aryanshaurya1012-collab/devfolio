@@ -1,179 +1,252 @@
-import React, { useRef, useState } from 'react';
+import { useRef, useState, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Html, RoundedBox } from '@react-three/drei';
+import { Html } from '@react-three/drei';
+import * as THREE from 'three';
 import { easing } from 'maath';
+import { ArrowUpRight } from 'lucide-react';
+
+// Single geometries compiled once for optimal WebGL performance
+const BOX_GEOMETRY = new THREE.BoxGeometry(4.4, 6.0, 0.22);
+const BACKPLATE_GEOMETRY = new THREE.PlaneGeometry(4.6, 6.2);
 
 export default function ProjectCard3D({
   project,
   index,
-  total,
-  activeIndexRef,
+  totalProjects = 1,
+  smoothIndex,
+  spacing = 5.6,
   onSelectProject,
   onInspectProject,
-  isModalOpen
 }) {
-  const groupRef = useRef();
-  const meshRef = useRef();
-  const glowRef = useRef();
+  const groupRef = useRef(null);
+  const backplateMatRef = useRef(null);
   const [hovered, setHovered] = useState(false);
+  const [localPointer, setLocalPointer] = useState({ x: 0, y: 0 });
 
-  useFrame((state, delta) => {
+  // Parse tech stack into individual tags
+  const techList = useMemo(() => {
+    if (Array.isArray(project?.tech) && project.tech.length > 0) {
+      return project.tech;
+    }
+    if (typeof project?.tech === 'string') {
+      return project.tech.split(',').map((t) => t.trim()).filter(Boolean);
+    }
+    return ['React', 'TypeScript', 'WebGL'];
+  }, [project]);
+
+  useFrame((_state, delta) => {
     if (!groupRef.current) return;
 
-    const currentActive = activeIndexRef.current;
-    const dist = index - currentActive;
+    // Real-time continuous distance from active camera focus
+    const currentIndex = smoothIndex?.current ?? 0;
+    const dist = index - currentIndex;
     const absDist = Math.abs(dist);
-    const isCentered = absDist < 0.35;
+    const isActive = absDist < 0.45;
 
-    // Cylindrical 3D Arch Coordinates
-    const spacing = 5.4;
+    // Step 11: Cylindrical curved 3D arch trajectory
     const targetX = dist * spacing;
-    const targetZ = -Math.pow(absDist, 1.35) * 2.2 + (hovered && isCentered ? 0.5 : 0);
-    const targetY = Math.sin(state.clock.elapsedTime * 1.4 + index) * 0.12 - absDist * 0.25;
+    const baseZ = -Math.min(7.5, Math.pow(absDist, 1.15) * 1.8);
+    const hoverZ = hovered ? 0.4 : 0;
+    const targetZ = baseZ + hoverZ;
 
-    easing.damp3(groupRef.current.position, [targetX, targetY, targetZ], 0.22, delta);
+    // Rotation: Arch curvature + Mouse hover 3D tilt
+    const baseRotY = -Math.max(-0.55, Math.min(0.55, dist * 0.26));
+    const tiltX = hovered ? localPointer.y * 0.18 : 0;
+    const tiltY = hovered ? localPointer.x * -0.18 : 0;
 
-    // 3D Rotation + Interactive Pointer Parallax Tilt
-    const pointerTiltY = hovered ? state.pointer.x * 0.18 : 0;
-    const pointerTiltX = hovered ? -state.pointer.y * 0.14 : 0;
-    const targetRotY = -dist * 0.32 + pointerTiltY;
-    const targetRotX = pointerTiltX;
-    const targetRotZ = -dist * 0.04;
+    // Scale: Active center monolith commands 60%+ height
+    const baseScale = Math.max(0.78, 1.0 - Math.min(1.2, absDist) * 0.16);
+    const targetScale = hovered ? baseScale * 1.03 : baseScale;
 
-    easing.dampE(groupRef.current.rotation, [targetRotX, targetRotY, targetRotZ], 0.22, delta);
+    // Frame-perfect positioning: cards move in exact mathematical unison
+    groupRef.current.position.set(targetX, 0, targetZ);
+    groupRef.current.rotation.set(tiltX, baseRotY + tiltY, 0);
+    groupRef.current.scale.set(targetScale, targetScale, targetScale);
 
-    // Dynamic Scale
-    const baseScale = isCentered ? 1.08 : Math.max(0.78, 1 - absDist * 0.16);
-    const hoverBoost = hovered ? 1.03 : 1;
-    const finalScale = baseScale * hoverBoost;
-    easing.damp3(groupRef.current.scale, [finalScale, finalScale, finalScale], 0.2, delta);
-
-    // Backlight Glow Intensity
-    if (glowRef.current) {
-      const targetOpacity = isCentered ? 0.45 : 0.08;
-      easing.damp(glowRef.current.material, 'opacity', targetOpacity, 0.2, delta);
+    // Glowing backplate opacity
+    if (backplateMatRef.current) {
+      const glowTarget = isActive ? 0.45 : hovered ? 0.25 : 0.0;
+      easing.damp(backplateMatRef.current, 'opacity', glowTarget, 0.2, delta);
     }
   });
 
   return (
     <group ref={groupRef}>
-      {/* Coloured Ambient Backlight Aura */}
-      <mesh ref={glowRef} position={[0, 0, -0.18]}>
-        <planeGeometry args={[4.9, 6.5]} />
-        <meshBasicMaterial color={project.accent || '#f59e0b'} transparent opacity={0.25} />
+      {/* Glowing Backplate Mesh */}
+      <mesh position={[0, 0, -0.13]} geometry={BACKPLATE_GEOMETRY}>
+        <meshBasicMaterial
+          ref={backplateMatRef}
+          color={project.accent || '#a78bfa'}
+          transparent
+          opacity={0}
+        />
       </mesh>
 
-      {/* Physical 3D Monolith Slab */}
-      <RoundedBox 0.22]} 5.9, args="{[4.3, " onPointerOver="{(e)" radius="{ 0.12}" ref="{ meshRef }" smoothness="{ 4}"> {
+      {/* Monolith Physical Bezel */}
+      <mesh
+        geometry={BOX_GEOMETRY}
+        onPointerOver={(e) => {
           e.stopPropagation();
-      setHovered(true);
-      document.body.style.cursor = 'pointer';
+          setHovered(true);
+          document.body.style.cursor = 'pointer';
         }}
-      onPointerOut={() => {
-        setHovered(false);
-        document.body.style.cursor = 'auto';
-      }}
-      onClick={(e) => {
-        e.stopPropagation();
-        onSelectProject(index);
-      }}
+        onPointerMove={(e) => {
+          e.stopPropagation();
+          if (e.point && groupRef.current) {
+            setLocalPointer({
+              x: Math.max(-1, Math.min(1, (e.uv ? e.uv.x - 0.5 : 0) * 2)),
+              y: Math.max(-1, Math.min(1, (e.uv ? e.uv.y - 0.5 : 0) * 2)),
+            });
+          }
+        }}
+        onPointerOut={() => {
+          setHovered(false);
+          setLocalPointer({ x: 0, y: 0 });
+          document.body.style.cursor = 'auto';
+        }}
+        onClick={(e) => {
+          e.stopPropagation();
+          const currentIndex = smoothIndex?.current ?? 0;
+          const dist = Math.abs(index - currentIndex);
+          if (dist < 0.45) {
+            onInspectProject(project);
+          } else {
+            onSelectProject(index);
+          }
+        }}
       >
-      <meshStandardMaterial
-        color={hovered ? '#2d2538' : '#1d1824'}
-        metalness={0.75}
-        roughness={0.22}
-      />
+        <meshStandardMaterial
+          color="#221d2d"
+          metalness={0.7}
+          roughness={0.25}
+        />
+      </mesh>
 
-      {/* Crisp High-Contrast Editorial Poster UI */}
-      {!isModalOpen && (
-        <Html 'auto' 0, 0.12]} center distanceFactor="{5.1}" pointerEvents: position="{[0, " style="{{
-          " transform }}>
-            <div
-              onClick = { (e) => {
-                e.stopPropagation();
-          onSelectProject(index);
-        }}
-      className={`w-[360px] h-[500px] rounded-2xl p-7 flex flex-col justify-between select-none transition-all duration-300 bg-gradient-to-b ${project.gradient || 'from-amber-500/25 via-zinc-900 to-zinc-950'
-        } bg-[#120f18]/95 border border-white/20 shadow-[0_25px_70px_rgba(0,0,0,0.85)] relative overflow-hidden group`}
-            >
-      {/* Top Accent Bar */}
-      <div
-        className="absolute top-0 left-0 right-0 h-1.5"
-        style={{ backgroundColor: project.accent || '#f59e0b' }}
-      />
-
-      {/* Subtle Radial Spotlight inside Card */}
-      <div
-        className="absolute -top-24 -right-24 w-56 h-56 rounded-full blur-3xl opacity-30 pointer-events-none"
-        style={{ backgroundColor: project.accent || '#f59e0b' }}
-      />
-
-      {/* Header Meta */}
-      <div className="flex items-center justify-between text-[11px] font-sans tracking-[0.22em] uppercase text-white/70 z-10">
-        <span className="px-2.5 py-1 rounded-full bg-white/10 border border-white/15 text-white font-medium">
-          {String(index + 1).padStart(2, '0')} // {String(total).padStart(2, '0')}
-        </span>
-        <span style={{ color: project.accent || '#fbbf24' }} className="font-semibold">
-          {project.category || 'FEATURED'} • {project.year || '2026'}
-        </span>
-      </div>
-
-      {/* Center Editorial Visual & Title */}
-      <div className="my-auto py-4 flex flex-col items-center text-center z-10">
+      {/* Editorial HTML Card Overlay */}
+      <Html
+        transform
+        distanceFactor={5.2}
+        position={[0, 0, 0.12]}
+        center
+        style={{ pointerEvents: 'auto' }}
+      >
         <div
-          className="w-14 h-14 rounded-2xl mb-5 flex items-center justify-center border border-white/20 shadow-inner"
-          style={{
-            background: `radial-gradient(circle, ${project.accent || '#f59e0b'}44 0%, transparent 70%)`
-          }}
-        >
-          <span className="font-serif italic text-2xl text-white">
-            {project.title?.charAt(0) || 'P'}
-          </span>
-        </div>
-
-        <h2 className="font-serif text-4xl sm:text-5xl text-white tracking-tight uppercase leading-[0.95] drop-shadow-sm mb-4">
-          {project.title}
-        </h2>
-
-        <p className="font-sans text-xs text-zinc-200/90 leading-relaxed line-clamp-3 max-w-[290px]">
-          {project.description}
-        </p>
-      </div>
-
-      {/* Footer Tech Pills & CTA */}
-      <div className="flex flex-col gap-3 z-10">
-        <div className="flex flex-wrap items-center justify-center gap-1.5">
-          {(Array.isArray(project.tech)
-            ? project.tech
-            : String(project.tech || 'React, WebGL').split(',')
-          )
-            .slice(0, 4)
-            .map((t, i) => (
-              <span
-                key={i}
-                className="px-2.5 py-0.5 text-[10px] tracking-wider uppercase bg-white/10 text-white/90 border border-white/15 rounded-md"
-              >
-                {t.trim()}
-              </span>
-            ))}
-        </div>
-
-        <button
           onClick={(e) => {
             e.stopPropagation();
-            onInspectProject(project);
+            const currentIndex = smoothIndex?.current ?? 0;
+            const dist = Math.abs(index - currentIndex);
+            if (dist < 0.45) {
+              onInspectProject(project);
+            } else {
+              onSelectProject(index);
+            }
           }}
-          className="w-full py-2.5 px-4 rounded-xl bg-white/10 hover:bg-white hover:text-black text-white border border-white/20 text-[11px] font-semibold tracking-[0.2em] uppercase transition-all duration-200 flex items-center justify-center gap-2"
+          className={`w-[380px] h-[520px] bg-gradient-to-br ${
+            project.gradient || 'from-violet-500/30 via-indigo-950/40 to-zinc-950'
+          } border border-white/20 rounded-2xl p-7 flex flex-col justify-between shadow-[0_25px_60px_rgba(0,0,0,0.85)] backdrop-blur-xl relative overflow-hidden select-none cursor-pointer transition-shadow duration-300 ${
+            hovered ? 'shadow-[0_0_40px_rgba(255,255,255,0.2)]' : ''
+          }`}
+          style={{
+            backgroundColor: '#0a080e',
+          }}
         >
-          <span>Explore Case Study</span>
-          <span>↗</span>
-        </button>
-      </div>
-    </div>
-          </Html >
-        )
-}
-      </RoundedBox >
-    </group >
+          {/* Accent Glow Top Highlight */}
+          <div
+            className="absolute -top-24 -right-24 w-48 h-48 rounded-full blur-3xl opacity-35 pointer-events-none"
+            style={{ backgroundColor: project.accent || '#a78bfa' }}
+          />
+
+          {/* Editorial Poster Header */}
+          <div className="relative z-10">
+            <div className="flex items-center justify-between border-b border-white/15 pb-4 mb-5">
+              <span className="font-mono text-xs tracking-[0.2em] font-semibold text-white/90">
+                0{index + 1} // 0{totalProjects}
+              </span>
+
+              <div className="flex items-center gap-2">
+                <span
+                  className="px-2.5 py-0.5 rounded-full text-[10px] font-sans font-semibold tracking-wider uppercase border"
+                  style={{
+                    backgroundColor: `${project.accent}15`,
+                    borderColor: `${project.accent}40`,
+                    color: project.accent || '#a78bfa',
+                  }}
+                >
+                  {project.category || 'CASE STUDY'}
+                </span>
+
+                <span className="font-mono text-[11px] text-zinc-400">
+                  {project.year || '2026'}
+                </span>
+              </div>
+            </div>
+
+            {/* Display Typography */}
+            <h2 className="font-serif text-5xl tracking-tight text-white drop-shadow-md leading-none mb-4">
+              {project.title}
+            </h2>
+
+            {/* Description */}
+            <p className="font-sans text-xs text-zinc-300 leading-relaxed line-clamp-3">
+              {project.description}
+            </p>
+          </div>
+
+          {/* Visual Cover Banner Accent */}
+          <div className="relative z-10 my-auto py-2">
+            <div
+              className="h-14 rounded-xl border border-white/10 flex items-center justify-between px-4"
+              style={{
+                background: `linear-gradient(90deg, ${project.accent}18 0%, rgba(255,255,255,0.02) 100%)`,
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-2 h-2 rounded-full animate-ping"
+                  style={{ backgroundColor: project.accent || '#a78bfa' }}
+                />
+                <span className="font-sans text-[11px] uppercase tracking-widest text-zinc-300 font-medium">
+                  Interactive Node
+                </span>
+              </div>
+              <span className="font-mono text-[10px] text-zinc-500">
+                DEV-OS ENGINE
+              </span>
+            </div>
+          </div>
+
+          {/* Action Footer */}
+          <div className="relative z-10 border-t border-white/15 pt-4">
+            {/* Tech Stack Pills */}
+            <div className="flex flex-wrap gap-1.5 mb-4">
+              {techList.slice(0, 4).map((tech) => (
+                <span
+                  key={tech}
+                  className="px-2.5 py-1 rounded-md text-[10px] font-mono font-medium text-zinc-300 bg-white/5 border border-white/10"
+                >
+                  {tech}
+                </span>
+              ))}
+            </div>
+
+            {/* Live Case Study CTA Button */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onInspectProject(project);
+              }}
+              className="w-full py-2.5 px-4 rounded-xl font-sans text-xs font-semibold tracking-wider uppercase text-white bg-white/10 hover:bg-white/20 border border-white/20 transition-all flex items-center justify-between group/btn cursor-pointer"
+            >
+              <span>Explore Case Study</span>
+              <ArrowUpRight
+                size={14}
+                className="group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform text-white/90"
+              />
+            </button>
+          </div>
+        </div>
+      </Html>
+    </group>
   );
 }
