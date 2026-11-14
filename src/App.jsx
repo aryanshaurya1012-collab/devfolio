@@ -158,7 +158,7 @@ export default function App() {
       </div>
 
       {/* Top Editorial HUD Header */}
-      <header className="absolute top-0 left-0 right-0 z-20 px-4 sm:px-10 py-5 sm:py-6 flex items-center justify-between pointer-events-none">
+      <header className="absolute top-0 left-0 right-0 z-20 px-4 sm:px-10 py-3.5 sm:py-4 flex items-center justify-between pointer-events-none">
         {/* Left: Brand, Mode Switcher & 4 Color Theme Pills */}
         <div className="flex items-center gap-2.5 sm:gap-4 pointer-events-auto">
           <span
@@ -210,8 +210,8 @@ export default function App() {
           </div>
         </div>
 
-        {/* Center Identity */}
-        <div className="text-center pointer-events-auto px-4 py-1.5 rounded-xl transition-all duration-300">
+        {/* Center Top Identity Heading */}
+        <div className="absolute top-3 sm:top-3.5 left-1/2 -translate-x-1/2 text-center pointer-events-auto px-4 transition-all duration-300">
           <h1
             className={`font-serif text-lg sm:text-xl md:text-2xl tracking-[0.22em] uppercase leading-tight transition-colors duration-300 ${
               isLight ? 'text-zinc-950 font-bold' : 'text-white drop-shadow-md font-normal'
