@@ -147,12 +147,12 @@ export default function ProjectCard3D({
           }}
           className={`w-[350px] h-[460px] rounded-2xl p-6 flex flex-col justify-between select-none cursor-pointer transition-all duration-300 relative overflow-hidden backdrop-blur-xl border ${
             isLight
-              ? 'bg-white/95 border-black/15 text-zinc-900 shadow-[0_20px_50px_rgba(0,0,0,0.12)]'
+              ? 'bg-white border-zinc-300 text-zinc-950 shadow-[0_20px_50px_rgba(0,0,0,0.18)]'
               : 'bg-[#0a080e]/95 border-white/20 text-white shadow-[0_25px_60px_rgba(0,0,0,0.85)]'
           } ${
             hovered
               ? isLight
-                ? 'shadow-[0_0_35px_rgba(0,0,0,0.2)]'
+                ? 'shadow-[0_0_35px_rgba(0,0,0,0.22)]'
                 : 'shadow-[0_0_40px_rgba(255,255,255,0.2)]'
               : ''
           }`}
@@ -172,12 +172,12 @@ export default function ProjectCard3D({
           <div className="relative z-10">
             <div
               className={`flex items-center justify-between pb-3.5 mb-4 border-b ${
-                isLight ? 'border-black/10' : 'border-white/15'
+                isLight ? 'border-zinc-200' : 'border-white/15'
               }`}
             >
               <span
-                className={`font-mono text-xs tracking-[0.2em] font-semibold ${
-                  isLight ? 'text-zinc-700' : 'text-white/90'
+                className={`font-mono text-xs tracking-[0.2em] font-bold ${
+                  isLight ? 'text-zinc-950' : 'text-white/90 font-semibold'
                 }`}
               >
                 0{index + 1} // 0{totalProjects}
@@ -185,19 +185,19 @@ export default function ProjectCard3D({
 
               <div className="flex items-center gap-2">
                 <span
-                  className="px-2.5 py-0.5 rounded-full text-[10px] font-sans font-semibold tracking-wider uppercase border"
+                  className="px-2.5 py-0.5 rounded-full text-[10px] font-sans font-bold tracking-wider uppercase border"
                   style={{
-                    backgroundColor: `${project.accent}18`,
-                    borderColor: `${project.accent}45`,
-                    color: isLight ? themeConfig?.accentText || project.accent : project.accent,
+                    backgroundColor: isLight ? `${project.accent}25` : `${project.accent}18`,
+                    borderColor: isLight ? `${project.accent}80` : `${project.accent}45`,
+                    color: isLight ? '#09090b' : project.accent,
                   }}
                 >
                   {project.category || 'CASE STUDY'}
                 </span>
 
                 <span
-                  className={`font-mono text-[11px] font-semibold ${
-                    isLight ? 'text-zinc-600' : 'text-zinc-400'
+                  className={`font-mono text-[11px] font-bold ${
+                    isLight ? 'text-zinc-800' : 'text-zinc-400 font-semibold'
                   }`}
                 >
                   {project.year || '2026'}
@@ -208,7 +208,7 @@ export default function ProjectCard3D({
             {/* Display Typography */}
             <h2
               className={`font-serif text-4xl sm:text-5xl tracking-tight leading-none mb-3 ${
-                isLight ? 'text-zinc-950 font-medium' : 'text-white drop-shadow-md'
+                isLight ? 'text-zinc-950 font-bold' : 'text-white drop-shadow-md font-normal'
               }`}
             >
               {project.title}
@@ -217,7 +217,7 @@ export default function ProjectCard3D({
             {/* Description */}
             <p
               className={`font-sans text-xs leading-relaxed line-clamp-3 ${
-                isLight ? 'text-zinc-700 font-normal' : 'text-zinc-300'
+                isLight ? 'text-zinc-900 font-medium' : 'text-zinc-300 font-normal'
               }`}
             >
               {project.description}
@@ -228,11 +228,11 @@ export default function ProjectCard3D({
           <div className="relative z-10 my-auto py-1">
             <div
               className={`h-12 rounded-xl border flex items-center justify-between px-3.5 ${
-                isLight ? 'border-black/10' : 'border-white/10'
+                isLight ? 'bg-zinc-50 border-zinc-200' : 'border-white/10'
               }`}
               style={{
                 background: isLight
-                  ? `linear-gradient(90deg, ${project.accent}14 0%, rgba(0,0,0,0.02) 100%)`
+                  ? `linear-gradient(90deg, ${project.accent}18 0%, rgba(0,0,0,0.03) 100%)`
                   : `linear-gradient(90deg, ${project.accent}18 0%, rgba(255,255,255,0.02) 100%)`,
               }}
             >
@@ -242,16 +242,16 @@ export default function ProjectCard3D({
                   style={{ backgroundColor: project.accent }}
                 />
                 <span
-                  className={`font-sans text-[10px] uppercase tracking-widest font-semibold ${
-                    isLight ? 'text-zinc-800' : 'text-zinc-300'
+                  className={`font-sans text-[10px] uppercase tracking-widest font-bold ${
+                    isLight ? 'text-zinc-950' : 'text-zinc-300 font-semibold'
                   }`}
                 >
                   Interactive Node
                 </span>
               </div>
               <span
-                className={`font-mono text-[10px] font-medium ${
-                  isLight ? 'text-zinc-600' : 'text-zinc-500'
+                className={`font-mono text-[10px] font-bold ${
+                  isLight ? 'text-zinc-700' : 'text-zinc-500 font-medium'
                 }`}
               >
                 DEV-OS ENGINE
@@ -262,7 +262,7 @@ export default function ProjectCard3D({
           {/* Action Footer */}
           <div
             className={`relative z-10 border-t pt-3.5 ${
-              isLight ? 'border-black/10' : 'border-white/15'
+              isLight ? 'border-zinc-200' : 'border-white/15'
             }`}
           >
             {/* Tech Stack Pills */}
@@ -270,9 +270,9 @@ export default function ProjectCard3D({
               {techList.slice(0, 4).map((tech) => (
                 <span
                   key={tech}
-                  className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-medium border ${
+                  className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-bold border ${
                     isLight
-                      ? 'text-zinc-800 bg-black/5 border-black/10 font-semibold'
+                      ? 'text-zinc-950 bg-zinc-100 border-zinc-300'
                       : 'text-zinc-300 bg-white/5 border-white/10'
                   }`}
                 >
@@ -288,10 +288,10 @@ export default function ProjectCard3D({
                 e.stopPropagation();
                 onInspectProject(project);
               }}
-              className={`w-full py-2.5 px-4 rounded-xl font-sans text-xs font-semibold tracking-wider uppercase transition-all flex items-center justify-between group/btn cursor-pointer ${
+              className={`w-full py-2.5 px-4 rounded-xl font-sans text-xs font-bold tracking-wider uppercase transition-all flex items-center justify-between group/btn cursor-pointer ${
                 isLight
-                  ? 'bg-zinc-900 hover:bg-black text-white shadow-md'
-                  : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+                  ? 'bg-zinc-950 hover:bg-black text-white shadow-md'
+                  : 'bg-white/10 hover:bg-white/20 text-white border border-white/20 font-semibold'
               }`}
             >
               <span>Explore Case Study</span>

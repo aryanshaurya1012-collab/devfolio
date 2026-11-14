@@ -340,11 +340,11 @@ export default function EditorModal({
   };
 
   const inputCls = isLight
-    ? 'w-full bg-black/[0.04] border border-black/15 rounded-xl px-3.5 py-2 text-xs font-mono text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 transition-colors'
+    ? 'w-full bg-zinc-50 border border-zinc-300 rounded-xl px-3.5 py-2 text-xs font-mono text-zinc-950 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 transition-colors font-medium'
     : 'w-full bg-black/40 border border-white/10 rounded-xl px-3.5 py-2 text-xs font-mono text-white placeholder:text-zinc-600 focus:outline-none focus:border-amber-400/80 focus:ring-1 focus:ring-amber-400/40 transition-colors';
 
-  const labelCls = `block font-sans text-xs uppercase tracking-wider mb-1.5 font-semibold ${
-    isLight ? 'text-zinc-700' : 'text-zinc-400'
+  const labelCls = `block font-sans text-xs uppercase tracking-wider mb-1.5 font-bold ${
+    isLight ? 'text-zinc-900' : 'text-zinc-400'
   }`;
 
   const tabs = [
@@ -368,13 +368,17 @@ export default function EditorModal({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-2xl p-3 sm:p-6">
+        <div
+          className={`fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 transition-colors duration-300 ${
+            isLight ? 'bg-black/40 backdrop-blur-md' : 'bg-black/85 backdrop-blur-2xl'
+          }`}
+        >
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 -z-10"
+            className="absolute inset-0 -z-10 cursor-pointer"
           />
 
           <motion.div
@@ -384,10 +388,14 @@ export default function EditorModal({
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
             className={`w-[95vw] max-w-5xl h-[88vh] border rounded-3xl p-5 sm:p-8 shadow-2xl font-sans flex flex-col justify-between overflow-hidden select-none relative ${
               isLight
-                ? 'bg-white/98 border-black/15 text-zinc-900 shadow-2xl'
+                ? 'bg-white border-zinc-200 text-zinc-950 shadow-[0_25px_70px_rgba(0,0,0,0.18)]'
                 : 'bg-[#0d0a12] border-white/20 text-[#e0e0e0] shadow-2xl'
             }`}
             onClick={(e) => e.stopPropagation()}
+            style={{
+              backgroundColor: isLight ? '#ffffff' : '#0d0a12',
+              color: isLight ? '#09090b' : '#f4f4f5',
+            }}
           >
             {/* Toast Alert */}
             {toastMsg && (

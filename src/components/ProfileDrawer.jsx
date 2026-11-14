@@ -16,14 +16,18 @@ export default function ProfileDrawer({ isOpen, onClose, portfolioData, mode = '
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-md">
+        <div
+          className={`fixed inset-0 z-50 flex justify-end transition-colors duration-300 ${
+            isLight ? 'bg-black/35 backdrop-blur-sm' : 'bg-black/60 backdrop-blur-md'
+          }`}
+        >
           {/* Backdrop Dismiss */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0"
+            className="absolute inset-0 cursor-pointer"
           />
 
           {/* Slide-Over Drawer */}
@@ -32,23 +36,27 @@ export default function ProfileDrawer({ isOpen, onClose, portfolioData, mode = '
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            className={`relative z-10 w-full sm:w-[480px] h-full border-l backdrop-blur-2xl p-8 sm:p-10 flex flex-col justify-between overflow-y-auto shadow-2xl font-sans ${
+            className={`relative z-10 w-full sm:w-[480px] h-full border-l p-7 sm:p-10 flex flex-col justify-between overflow-y-auto shadow-2xl font-sans ${
               isLight
-                ? 'bg-white/98 border-black/10 text-zinc-900 shadow-2xl'
-                : 'bg-[#0d0a12]/95 border-white/10 text-[#e0e0e0] shadow-2xl'
+                ? 'bg-white border-zinc-200 text-zinc-950 shadow-[0_25px_70px_rgba(0,0,0,0.18)]'
+                : 'bg-[#0d0a12] border-white/10 text-[#e0e0e0] shadow-2xl'
             }`}
             onClick={(e) => e.stopPropagation()}
+            style={{
+              backgroundColor: isLight ? '#ffffff' : '#0d0a12',
+              color: isLight ? '#09090b' : '#f4f4f5',
+            }}
           >
             {/* Header */}
             <div>
               <div
-                className={`flex items-center justify-between pb-6 border-b ${
-                  isLight ? 'border-black/10' : 'border-white/10'
+                className={`flex items-center justify-between pb-5 border-b ${
+                  isLight ? 'border-zinc-200' : 'border-white/10'
                 }`}
               >
                 <span
-                  className={`font-mono text-xs uppercase tracking-widest ${
-                    isLight ? 'text-zinc-600 font-semibold' : 'text-zinc-500'
+                  className={`font-mono text-xs uppercase tracking-widest font-bold ${
+                    isLight ? 'text-zinc-900' : 'text-zinc-500'
                   }`}
                 >
                   ARCHITECT // PROFILE
@@ -56,9 +64,9 @@ export default function ProfileDrawer({ isOpen, onClose, portfolioData, mode = '
                 <button
                   type="button"
                   onClick={onClose}
-                  className={`font-sans text-xs px-3 py-1.5 rounded-full border transition-all flex items-center gap-1 cursor-pointer ${
+                  className={`font-sans text-xs px-3 py-1.5 rounded-full border transition-all flex items-center gap-1 cursor-pointer font-medium ${
                     isLight
-                      ? 'text-zinc-700 hover:text-black border-black/15 hover:border-black'
+                      ? 'text-zinc-900 hover:text-black border-zinc-300 hover:border-black bg-zinc-100 hover:bg-zinc-200'
                       : 'text-zinc-400 hover:text-white border-white/10 hover:border-white'
                   }`}
                 >
@@ -71,14 +79,14 @@ export default function ProfileDrawer({ isOpen, onClose, portfolioData, mode = '
               <div className="pt-8 space-y-6">
                 <div>
                   <h3
-                    className={`font-serif text-3xl sm:text-4xl font-normal leading-tight ${
-                      isLight ? 'text-zinc-950 font-medium' : 'text-white'
+                    className={`font-serif text-3xl sm:text-4xl leading-tight ${
+                      isLight ? 'text-zinc-950 font-bold' : 'text-white font-normal'
                     }`}
                   >
                     {portfolioData.name || 'ALEXANDER VANE'}
                   </h3>
                   <p
-                    className={`font-sans text-sm font-semibold tracking-wide mt-1 ${
+                    className={`font-sans text-sm font-bold tracking-wide mt-1.5 ${
                       isLight ? 'text-purple-700' : 'text-amber-400/90'
                     }`}
                   >
@@ -88,30 +96,30 @@ export default function ProfileDrawer({ isOpen, onClose, portfolioData, mode = '
                   {portfolioData.location && (
                     <div
                       className={`flex items-center gap-1.5 text-xs mt-2 font-mono ${
-                        isLight ? 'text-zinc-600 font-medium' : 'text-zinc-400'
+                        isLight ? 'text-zinc-700 font-bold' : 'text-zinc-400'
                       }`}
                     >
-                      <MapPin size={13} className={isLight ? 'text-zinc-600' : 'text-zinc-500'} />
+                      <MapPin size={13} className={isLight ? 'text-purple-700' : 'text-zinc-500'} />
                       <span>{portfolioData.location}</span>
                     </div>
                   )}
                 </div>
 
                 <div
-                  className={`pt-4 border-t ${
-                    isLight ? 'border-black/10' : 'border-white/10'
+                  className={`pt-5 border-t ${
+                    isLight ? 'border-zinc-200' : 'border-white/10'
                   }`}
                 >
                   <h4
-                    className={`font-sans text-xs uppercase tracking-widest mb-2.5 font-semibold ${
-                      isLight ? 'text-zinc-700' : 'text-zinc-400'
+                    className={`font-sans text-xs uppercase tracking-widest mb-2.5 font-bold ${
+                      isLight ? 'text-zinc-900' : 'text-zinc-400'
                     }`}
                   >
                     Statement &amp; Background
                   </h4>
                   <p
                     className={`font-sans text-xs sm:text-sm leading-relaxed ${
-                      isLight ? 'text-zinc-700 font-normal' : 'text-zinc-300'
+                      isLight ? 'text-zinc-800 font-normal' : 'text-zinc-300'
                     }`}
                   >
                     {portfolioData.bio ||
@@ -121,13 +129,13 @@ export default function ProfileDrawer({ isOpen, onClose, portfolioData, mode = '
 
                 {/* Skills Stack */}
                 <div
-                  className={`pt-4 border-t ${
-                    isLight ? 'border-black/10' : 'border-white/10'
+                  className={`pt-5 border-t ${
+                    isLight ? 'border-zinc-200' : 'border-white/10'
                   }`}
                 >
                   <h4
-                    className={`font-sans text-xs uppercase tracking-widest mb-3 font-semibold ${
-                      isLight ? 'text-zinc-700' : 'text-zinc-400'
+                    className={`font-sans text-xs uppercase tracking-widest mb-3 font-bold ${
+                      isLight ? 'text-zinc-900' : 'text-zinc-400'
                     }`}
                   >
                     Core Technical Arsenal
@@ -136,9 +144,9 @@ export default function ProfileDrawer({ isOpen, onClose, portfolioData, mode = '
                     {(portfolioData.skills || []).map((skill) => (
                       <span
                         key={skill}
-                        className={`px-3 py-1 rounded-full text-xs font-mono font-medium border ${
+                        className={`px-3 py-1 rounded-full text-xs font-mono font-bold border ${
                           isLight
-                            ? 'text-zinc-800 bg-black/5 border-black/10'
+                            ? 'text-zinc-950 bg-zinc-100 border-zinc-300'
                             : 'text-zinc-200 bg-white/5 border-white/10'
                         }`}
                       >
@@ -150,13 +158,13 @@ export default function ProfileDrawer({ isOpen, onClose, portfolioData, mode = '
 
                 {/* Social Connect */}
                 <div
-                  className={`pt-4 border-t ${
-                    isLight ? 'border-black/10' : 'border-white/10'
+                  className={`pt-5 border-t ${
+                    isLight ? 'border-zinc-200' : 'border-white/10'
                   }`}
                 >
                   <h4
-                    className={`font-sans text-xs uppercase tracking-widest mb-3 font-semibold ${
-                      isLight ? 'text-zinc-700' : 'text-zinc-400'
+                    className={`font-sans text-xs uppercase tracking-widest mb-3 font-bold ${
+                      isLight ? 'text-zinc-900' : 'text-zinc-400'
                     }`}
                   >
                     Direct Network &amp; Code
@@ -167,16 +175,16 @@ export default function ProfileDrawer({ isOpen, onClose, portfolioData, mode = '
                         href={portfolioData.socials.github}
                         target="_blank"
                         rel="noreferrer"
-                        className={`flex items-center justify-between p-3 rounded-xl border text-xs font-mono transition-all group ${
+                        className={`flex items-center justify-between p-3 rounded-xl border text-xs font-mono font-bold transition-all group ${
                           isLight
-                            ? 'bg-black/[0.03] border-black/10 hover:border-black/30 text-zinc-800 hover:text-black'
+                            ? 'bg-zinc-50 border-zinc-200 hover:border-zinc-900 text-zinc-950 hover:bg-zinc-100'
                             : 'bg-white/[0.03] border-white/10 hover:border-white/30 text-zinc-300 hover:text-white'
                         }`}
                       >
                         <div className="flex items-center gap-2.5">
                           <Code2
                             size={16}
-                            className={isLight ? 'text-purple-600' : 'text-amber-400'}
+                            className={isLight ? 'text-purple-700' : 'text-amber-400'}
                           />
                           <span>GitHub Repository</span>
                         </div>
@@ -192,16 +200,16 @@ export default function ProfileDrawer({ isOpen, onClose, portfolioData, mode = '
                         href={portfolioData.socials.linkedin}
                         target="_blank"
                         rel="noreferrer"
-                        className={`flex items-center justify-between p-3 rounded-xl border text-xs font-mono transition-all group ${
+                        className={`flex items-center justify-between p-3 rounded-xl border text-xs font-mono font-bold transition-all group ${
                           isLight
-                            ? 'bg-black/[0.03] border-black/10 hover:border-black/30 text-zinc-800 hover:text-black'
+                            ? 'bg-zinc-50 border-zinc-200 hover:border-zinc-900 text-zinc-950 hover:bg-zinc-100'
                             : 'bg-white/[0.03] border-white/10 hover:border-white/30 text-zinc-300 hover:text-white'
                         }`}
                       >
                         <div className="flex items-center gap-2.5">
                           <Link2
                             size={16}
-                            className={isLight ? 'text-blue-600' : 'text-sky-400'}
+                            className={isLight ? 'text-blue-700' : 'text-sky-400'}
                           />
                           <span>LinkedIn Professional</span>
                         </div>
@@ -217,16 +225,16 @@ export default function ProfileDrawer({ isOpen, onClose, portfolioData, mode = '
                         href={portfolioData.socials.twitter}
                         target="_blank"
                         rel="noreferrer"
-                        className={`flex items-center justify-between p-3 rounded-xl border text-xs font-mono transition-all group ${
+                        className={`flex items-center justify-between p-3 rounded-xl border text-xs font-mono font-bold transition-all group ${
                           isLight
-                            ? 'bg-black/[0.03] border-black/10 hover:border-black/30 text-zinc-800 hover:text-black'
+                            ? 'bg-zinc-50 border-zinc-200 hover:border-zinc-900 text-zinc-950 hover:bg-zinc-100'
                             : 'bg-white/[0.03] border-white/10 hover:border-white/30 text-zinc-300 hover:text-white'
                         }`}
                       >
                         <div className="flex items-center gap-2.5">
                           <AtSign
                             size={16}
-                            className={isLight ? 'text-pink-600' : 'text-pink-400'}
+                            className={isLight ? 'text-pink-700' : 'text-pink-400'}
                           />
                           <span>Twitter / X Feed</span>
                         </div>
@@ -243,15 +251,15 @@ export default function ProfileDrawer({ isOpen, onClose, portfolioData, mode = '
 
             {/* Footer Direct CTA */}
             <div
-              className={`pt-8 border-t mt-8 ${
-                isLight ? 'border-black/10' : 'border-white/10'
+              className={`pt-6 border-t mt-8 ${
+                isLight ? 'border-zinc-200' : 'border-white/10'
               }`}
             >
               <a
                 href={`mailto:${portfolioData.socials?.email || 'contact@studio-vane.io'}`}
-                className={`w-full py-3 px-5 rounded-full font-sans text-xs font-semibold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg ${
+                className={`w-full py-3 px-5 rounded-full font-sans text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg ${
                   isLight
-                    ? 'bg-zinc-900 text-white hover:bg-black'
+                    ? 'bg-zinc-950 text-white hover:bg-black'
                     : 'bg-white text-black hover:bg-zinc-200'
                 }`}
               >
